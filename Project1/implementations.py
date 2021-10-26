@@ -214,5 +214,3 @@ def build_poly2(x, degree):
     poly[:, 1+D*degree+count2+D:] = rad(x, 3)
     
     return poly
-
-def pca()
