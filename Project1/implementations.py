@@ -32,18 +32,17 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     w = initial_w
     for i in range(max_iters):
         grad = compute_gradient(y, tx, w)
-        w += gamma * gradient
+        w += gamma * grad
     loss = compute_loss(y, tx, w)
     return w, loss
 
 
-def least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma):
+def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     """Linear regression using stochastic gradient descent."""
     w = initial_w
-    for i in range(max_iters):
-        for y_batch, tx_batch in batch_iter(y, tx, batch_size=batch_size, num_batches=1):
-            grad = compute_gradient(y, tx, w)
-            w += gamma * grad
+    for y_batch, tx_batch in batch_iter(y, tx, batch_size=1, num_batches=max_iters):
+        grad = compute_gradient(y_batch, tx_batch, w)
+        w += gamma * grad
     loss = compute_loss(y, tx, w)
     return w, loss
 
@@ -215,3 +214,5 @@ def build_poly2(x, degree):
     poly[:, 1+D*degree+count2+D:] = rad(x, 3)
     
     return poly
+
+def pca()
