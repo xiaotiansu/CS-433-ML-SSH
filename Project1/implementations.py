@@ -119,10 +119,7 @@ def build_k_indices(y, k_fold, seed):
     return np.array(k_indices)
 
 def cross_validation(y, x, fun, k_indices, k, degree, alpha, lamb=None, log=False, **kwargs):
-    """
-    Completes k-fold cross-validation for Least Squares with GD, SGD, Normal Equations, Logistic and Regularized Logistic 
-    Regression with SGD
-    """
+    """Cross validation"""
     # get k'th subgroup in test, others in train
     msk_test = k_indices[k]
     msk_train = np.delete(k_indices, (k), axis=0).ravel()
@@ -140,7 +137,7 @@ def cross_validation(y, x, fun, k_indices, k, degree, alpha, lamb=None, log=Fals
     # x_train, x_test = process_data(x_train, x_test, alpha)
             
     # transformation
-    x_train, x_test = phi(x_train, x_test, degree)
+    x_train, x_test = transform(x_train, x_test, degree)
         
     # compute weights using given method
     if lamb == None:
@@ -163,15 +160,8 @@ def cross_validation(y, x, fun, k_indices, k, degree, alpha, lamb=None, log=Fals
     
     return acc_train, acc_test, loss
 
-def predict_labels_logistic(weights, data):
-    """Generates class predictions given weights, and a test data matrix"""
-    y_pred = sigmoid(data@weights)
-    y_pred[y_pred < 0.5] = -1
-    y_pred[y_pred > 0.5] = 1
-    
-    return y_pred
 
-def phi(x_train, x_test, degree):
+def transform(x_train, x_test, degree):
     """
     Transformation of X matrix: polynomial expansion and coupling
     """
@@ -180,37 +170,3 @@ def phi(x_train, x_test, degree):
     x_test = build_poly(x_test, degree)
     
     return x_train, x_test
-
-
-def build_poly2(x, degree):
-    """ Polynomial expansion: add an intecept
-                             for each feature polynomial expansion from 1 to degree
-                             for each feature create a new feature equal to the root and cubic square 
-                             for each couple of feature create a new feature equal to the product """
-    N, D = x.shape    
-    # couples
-    temp_dict2 = {}
-    count2 = 0
-    for i in range(D):
-        for j in range(i+1,D):
-            temp = x[:,i] * x[:,j]
-            temp_dict2[count2] = [temp]
-            count2 += 1
-    
-    poly = np.zeros(shape=(N, 1+D*(degree+2)+count2))
-    
-    # intercept
-    poly[:,0] = np.ones(N)
-    # powers
-    for deg in range(1,degree+1):
-        for i in range(D):
-            poly[:, 1+D*(deg-1)+i ] = np.power(x[:,i],deg)      
-    # coupling     
-    for i in range(count2):
-        poly[:, 1+D*degree+i ] = temp_dict2[i][0]     
-    # roots   
-    for i in range(D):
-        poly[:, 1+D*degree+count2+i] = np.abs(x[:,i])**0.5
-    poly[:, 1+D*degree+count2+D:] = rad(x, 3)
-    
-    return poly

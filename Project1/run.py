@@ -12,7 +12,7 @@ _, testx, test_id = load_csv_data('data/test.csv')
 print("Cleanning the abnormal values and standardizing dataset with Z-score...")
 standardized_trainx = standardize(trainx)
 standardized_testx = standardize(testx)
-
+'''
 seed=10
 degrees = [5, 5, 5]
 alphas = [4, 4, 5]
@@ -56,21 +56,20 @@ print("i, j: %f" % idx_min)
 # y_pred = predict_labels(standardized_testx, reg_logit_w)
 # create_csv_submission(test_id, y_pred, 'predictions.csv')
 
-'''
+
 initial_w = np.zeros((len(standardized_trainx[0])))
 print("Training using least_squares_GD...")
 gd_w, gd_loss = least_squares_GD(y, standardized_trainx, initial_w, 25, 1000)
 gd_y_pred = predict_labels(standardized_trainx, gd_w)
 print ('Accuracy', accuracy(gd_y_pred, y))
 
-
 initial_w = np.zeros((len(standardized_trainx[0])))
 print("Training using least_squares_SGD...")
-sgd_w, sgd_loss = least_squares_SGD(y, standardized_trainx, initial_w, 1, 5, 0.5)
+sgd_w, sgd_loss = least_squares_SGD(y, standardized_trainx, initial_w, 10, 0.5)
 sgd_y_pred = predict_labels(standardized_trainx, sgd_w)
 print('loss', sgd_loss)
 print ('Accuracy', accuracy(sgd_y_pred, y))
-
+'''
 
 initial_w = np.zeros((len(standardized_trainx[0])))
 print("Training using logistic_regression...")
@@ -79,7 +78,6 @@ logit_y_pred = predict_labels(standardized_trainx, logit_w)
 print('loss', logit_loss)
 print ('Accuracy', accuracy(logit_y_pred, y))
 
-
 initial_w = np.zeros((len(standardized_trainx[0])))
 print("Training using reg_logistic_regression...")
 reg_logit_w, reg_logit_loss = reg_logistic_regression(y, standardized_trainx, 1e-8, initial_w, 50, 0.1)
@@ -87,6 +85,7 @@ reg_logit_y_pred = predict_labels(standardized_trainx, reg_logit_w)
 print('loss', reg_logit_loss)
 print ('Accuracy', accuracy(reg_logit_y_pred, y))
 
+'''
 print("Making predctions for the test file...")
 y_pred = predict_labels(standardized_testx, reg_logit_w)
 create_csv_submission(test_id, y_pred, 'predictions.csv')
