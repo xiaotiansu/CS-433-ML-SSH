@@ -1,0 +1,63 @@
+#!/bin/bash
+
+#SBATCH --chdir /home/yueliu/vita/ttt_cifar_improved
+#SBATCH --output slurm/align-%j.out
+#SBATCH --nodes 1
+#SBATCH --ntasks 1
+#SBATCH --account vita
+
+#SBATCH --time 6:00:00
+#SBATCH --partition gpu
+
+#SBATCH --cpus-per-task 20
+#SBATCH --mem 90G
+#SBATCH --gres gpu:1
+
+##SBATCH --cpus-per-task 40
+##SBATCH --mem 180G
+##SBATCH --gres gpu:2
+
+##SBATCH --reservation vita
+##SBATCH --time 1:00:00
+##SBATCH --partition build
+
+date
+
+###########################
+#        venv
+###########################
+
+module load gcc/8.4.0-cuda python/3.7.7
+module load py-torch/1.6.0-cuda-openmp py-torchvision/0.6.1
+
+source /home/yueliu/vita/ttt_cifar_improved/venvcifarttt/bin/activate
+
+###########################
+#        settings
+###########################
+
+export PYTHONPATH=$PYTHONPATH:$(pwd)
+
+DATADIR=/work/vita/datasets/cifar
+DATASET=cifar10
+
+if [ -z "${CORRUPT+xxx}" ]; then
+    echo "Use args within script"
+    # CORRUPT=cifar_new
+    CORRUPT=snow
+    BS=16
+else
+    echo "Use args from external input"
+fi
+
+
+###########################
+#        python
+###########################
+
+# bash scripts/run_ttt++_cifar.sh ${CORRUPT} both ${COEF}
+
+FACTOR=8
+QS=$((${BS}*${FACTOR}))
+
+bash scripts/run_ttt++_cifar.sh ${CORRUPT} align $BS $QS
