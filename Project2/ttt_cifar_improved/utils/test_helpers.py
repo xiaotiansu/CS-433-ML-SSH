@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
+from models.SSHead import ExtractorHead
 from utils.misc import *
 from utils.rotation import rotate_batch
 
@@ -94,6 +95,30 @@ def build_resnet50(args):
     net = ExtractorHead(ext, classifier).cuda()
     return net, ext, head, ssh, classifier
 
+def build_bert(args, model):
+    from models.bert.bert import BertFeaturizer
+    from models.bert.distilbert import DistilBertFeaturizer
+
+
+    if args.dataset == 'civlcomments':
+        classes = 2
+    
+    if model == "bert":
+        pretrained_model = "bert-base-uncased"
+        ext = BertFeaturizer.from_pretrained(pretrained_model).cuda()
+
+    elif model == "distilbert":
+        pretrained_model = "distilbert-base-uncased"
+        # todo 'model_kwargs'
+        ext = DistilBertFeaturizer.from_pretrained(pretrained_model).cuda()
+
+    classifer = nn.Linear(ext.d_out, classes).cuda()
+    net = ExtractorHead(ext, classifer).cuda()
+
+    # todo devise a ssh task
+    sshead = 1
+    ssh = 1
+    return net, ext, sshead, ssh, classifer
 
 def build_model(args):
     from models.ResNet import ResNetCifar as ResNet
