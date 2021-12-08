@@ -272,6 +272,12 @@ def main():
             config=config,
             epoch_offset=epoch_offset,
             best_val_metric=best_val_metric)
+
+        if algorithm == "TTTPP":
+            # TODO: offline feature summarization
+            print("I am TTTPP!!!")
+
+
     else:
         if config.eval_epoch is None:
             eval_model_path = model_prefix + 'epoch:best_model.pth'
@@ -284,6 +290,11 @@ def main():
             epoch = config.eval_epoch
         if epoch == best_epoch:
             is_best = True
+        
+        if algorithm == "TTTPP":
+            # TODO: test-time training
+            print("I am TTTPP!!!")
+
         evaluate(
             algorithm=algorithm,
             datasets=datasets,
