@@ -89,7 +89,7 @@ cudnn.benchmark = True
 
 # -------------------------------
 
-net, ext, head, ssh, classifier = build_resnet50(args)
+net, ext, head, ssh, classifier = build_bert(args, "bert")
 
 _, teloader = prepare_test_data(args)
 

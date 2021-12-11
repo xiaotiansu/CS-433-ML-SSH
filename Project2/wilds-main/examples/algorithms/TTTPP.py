@@ -1,10 +1,12 @@
 import torch
 from initializer import initialize_model
 import torch.optim as optim
+from ttt_helpers.offline import offline
+from ttt_helpers.online import FeatureQueue
 
-class TTTPP():
+class TTTPP:
 
-    def __init__(self, config, d_out, criterion, lr, queue_size, scale):
+    def __init__(self, config, d_out, criterion, lr):
 
         # initialize models
 
@@ -30,8 +32,6 @@ class TTTPP():
         
         self.lr = lr
         self.criterion = criterion
-        self.queue_size = queue_size
-        self.scale = scale
 
     def train(self):
         self.mode = "train"
@@ -41,19 +41,57 @@ class TTTPP():
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer,
     'min', factor=0.5, patience=10, cooldown=10,
     threshold=0.0001, threshold_mode='rel', min_lr=0.0001, verbose=True)
+
+        self.featurizer.train()
+        self.classifier.train()
+        self.projector.train()
     
-    def summarize(self):
-        self.mode = "summarize"
-    
+    def summarize(self, offlineloader, scale_ext, scale_ssh, queue_size, batch_size_align):
+        assert queue_size % batch_size_align == 0
+        assert queue_size > batch_size_align
+
+        MMD_SCALE_FACTOR = 0.5
+
+        # align featurizer
+        cov_src_ext, coral_src_ext, mu_src_ext, mmd_src_ext = offline(offlineloader, self.featurizer, scale_ext)
+        scale_coral_ext = scale_ext / coral_src_ext
+        scale_mmd_ext = scale_ext / mmd_src_ext * MMD_SCALE_FACTOR
+        queue_ext = FeatureQueue(dim=mu_src_ext.shape[0], length=queue_size-batch_size_align)
+        
+        self.cov_src_ext = cov_src_ext
+        self.mu_src_ext = mu_src_ext
+        self.scale_coral_ext = scale_coral_ext
+        self.scale_mmd_ext = scale_mmd_ext
+        self.queue_ext = queue_ext
+
+        # align ssh
+        cov_src_ssh, coral_src_ssh, mu_src_ssh, mmd_src_ssh = offline(offlineloader, self.ssh, scale_ssh)
+        scale_coral_ssh = scale_ssh / coral_src_ssh
+        scale_mmd_ssh = scale_ssh / mmd_src_ssh * MMD_SCALE_FACTOR
+        queue_ssh = FeatureQueue(dim=mu_src_ssh.shape[0], length=queue_size-batch_size_align)
+
+        self.cov_src_ssh = cov_src_ssh
+        self.mu_src_ssh = mu_src_ssh
+        self.scale_coral_ssh = scale_coral_ssh
+        self.scale_mmd_ssh = scale_mmd_ssh
+        self.queue_ssh = queue_ssh
+            
     def test_train(self):
         self.mode = "test_train"
         self.optimizer = optim.SGD(self.ssh.parameters(), lr=self.lr, momentum=0.9)
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer,
     'min', factor=0.5, patience=10, cooldown=10,
     threshold=0.0001, threshold_mode='rel', min_lr=0.0001, verbose=True)
+
+        self.featurizer.train()
+        self.projector.train()
     
     def eval(self):
         self.mode = "eval"
+
+        self.featurizer.eval()
+        self.classifier.eval()
+        
 
     def _train_process_batch(self, batch):
         self.optimizer.zero_grad()
@@ -71,18 +109,26 @@ class TTTPP():
         loss.backward()
         self.optimizer.step()
 
-    def _summarize_process_batch(self, batch):
-        x, _, _ = batch
-        x = x.to(self.device)
+    def _test_train_process_batch(self, batch):
 
-        # TODO: compute feature mean & covariance
-        # align featurizer
+        self.optimizer.zero_grad()
+
+        # contrastive learning
+
+        x, y, _ = batch
+        texts = torch.cat([x[0], x[1]], dim=0)
+        texts = texts.cuda(non_blocking=True)
+        labels = y.cuda(non_blocking=True)
+
+        sz = labels.shape[0]
+        features = self.ssh(texts)
+        f1, f2 = torch.split(features, [sz, sz], dim=0)
+        features = torch.cat([f1.unsqueeze(1), f2.unsqueeze(1)], dim=1)
+        loss = self.criterion(features)
+
         
 
-        # align projector
-
-
-    def _test_train_process_batch(self, batch):
+        # TODO
         
     
     def _evaluate_process_batch(self, batch):
@@ -164,29 +210,6 @@ class TTTPP():
         avg_loss = self.loss.compute(results['y_pred'], results['y_true'], return_dict=False)
 
         return avg_loss + penalty * self.penalty_weight
-
-class FeatureQueue():
-    def __init__(self, dim, length):
-        self.length = length
-        self.queue = torch.zeros(length, dim)
-        self.ptr = 0
-
-    @torch.no_grad()
-    def update(self, feat):
-
-        batch_size = feat.shape[0]
-        assert self.length % batch_size == 0  # for simplicity
-
-        # replace the features at ptr (dequeue and enqueue)
-        self.queue[self.ptr:self.ptr + batch_size] = feat
-        self.ptr = (self.ptr + batch_size) % self.length  # move pointer
-
-    def get(self):
-        cnt = (self.queue[-1] != 0).sum()
-        if cnt.item():
-            return self.queue
-        else:
-            return None
 
 def constrastive_transform(batch):
     # TODO: construct positive and negative samples for contrastive learning

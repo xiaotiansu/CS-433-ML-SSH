@@ -99,7 +99,6 @@ def build_bert(args, model):
     from models.bert.bert import BertFeaturizer
     from models.bert.distilbert import DistilBertFeaturizer
 
-
     if args.dataset == 'civlcomments':
         classes = 2
     
@@ -109,13 +108,13 @@ def build_bert(args, model):
 
     elif model == "distilbert":
         pretrained_model = "distilbert-base-uncased"
-        # todo 'model_kwargs'
+        # TODO 'model_kwargs'
         ext = DistilBertFeaturizer.from_pretrained(pretrained_model).cuda()
 
     classifer = nn.Linear(ext.d_out, classes).cuda()
     net = ExtractorHead(ext, classifer).cuda()
 
-    # todo devise a ssh task
+    # TODO devise a ssh task
     sshead = 1
     ssh = 1
     return net, ext, sshead, ssh, classifer
