@@ -88,31 +88,33 @@ def build_resnet50(args):
     elif args.dataset == "cifar100":
         classes = 100
 
-    classifier = LinearClassifier(num_classes=classes).cuda()
-    ssh = SupConResNet().cuda()
+    classifier = LinearClassifier(num_classes=classes).cpu()
+    ssh = SupConResNet().cpu()
     head = ssh.head
     ext = ssh.encoder
-    net = ExtractorHead(ext, classifier).cuda()
+    net = ExtractorHead(ext, classifier).cpu()
     return net, ext, head, ssh, classifier
 
 def build_bert(args, model):
+    ext = None
+    classes = 0
     from models.bert.bert import BertFeaturizer
     from models.bert.distilbert import DistilBertFeaturizer
 
-    if args.dataset == 'civlcomments':
+    if args.dataset == 'civil':
         classes = 2
     
     if model == "bert":
         pretrained_model = "bert-base-uncased"
-        ext = BertFeaturizer.from_pretrained(pretrained_model).cuda()
+        ext = BertFeaturizer.from_pretrained(pretrained_model).cpu()
 
     elif model == "distilbert":
         pretrained_model = "distilbert-base-uncased"
         # TODO 'model_kwargs'
-        ext = DistilBertFeaturizer.from_pretrained(pretrained_model).cuda()
+        ext = DistilBertFeaturizer.from_pretrained(pretrained_model).cpu()
 
-    classifer = nn.Linear(ext.d_out, classes).cuda()
-    net = ExtractorHead(ext, classifer).cuda()
+    classifer = nn.Linear(ext.d_out, classes).cpu()
+    net = ExtractorHead(ext, classifer).cpu()
 
     # TODO devise a ssh task
     sshead = 1
@@ -144,7 +146,7 @@ def build_model(args):
         detach = args.shared
     else:
         detach = None
-    net = ResNet(args.depth, args.width, channels=3, classes=classes, norm_layer=norm_layer, detach=detach).cuda()
+    net = ResNet(args.depth, args.width, channels=3, classes=classes, norm_layer=norm_layer, detach=detach).cpu()
     if args.shared == 'none':
         args.shared = None
 
@@ -165,7 +167,7 @@ def build_model(args):
         from models.SSHead import extractor_from_layer2, head_on_layer2
         ext = extractor_from_layer2(net)
         head = head_on_layer2(net, args.width, 4)
-    ssh = ExtractorHead(ext, head).cuda()
+    ssh = ExtractorHead(ext, head).cpu()
 
     if hasattr(args, 'parallel') and args.parallel:
         net = torch.nn.DataParallel(net)
@@ -174,14 +176,14 @@ def build_model(args):
 
 
 def test(dataloader, model, sslabel=None):
-    criterion = nn.CrossEntropyLoss(reduction='none').cuda()
+    criterion = nn.CrossEntropyLoss(reduction='none').cpu()
     model.eval()
     correct = []
     losses = []
-    for batch_idx, (inputs, labels) in enumerate(dataloader):
+    for batch_idx, (inputs, labels, meta) in enumerate(dataloader):
         if sslabel is not None:
             inputs, labels = rotate_batch(inputs, sslabel)
-        inputs, labels = inputs.cuda(), labels.cuda()
+        inputs, labels = inputs.cpu(), labels.cpu()
         with torch.no_grad():
             outputs = model(inputs)
             loss = criterion(outputs, labels)
@@ -195,14 +197,14 @@ def test(dataloader, model, sslabel=None):
 
 
 def test_grad_corr(dataloader, net, ssh, ext):
-    criterion = nn.CrossEntropyLoss().cuda()
+    criterion = nn.CrossEntropyLoss().cpu()
     net.eval()
     ssh.eval()
     corr = []
     for batch_idx, (inputs, labels) in enumerate(dataloader):
         net.zero_grad()
         ssh.zero_grad()
-        inputs_cls, labels_cls = inputs.cuda(), labels.cuda()
+        inputs_cls, labels_cls = inputs.cpu(), labels.cpu()
         outputs_cls = net(inputs_cls)
         loss_cls = criterion(outputs_cls, labels_cls)
         grad_cls = torch.autograd.grad(loss_cls, ext.parameters())
@@ -210,7 +212,7 @@ def test_grad_corr(dataloader, net, ssh, ext):
 
         ext.zero_grad()
         inputs, labels = rotate_batch(inputs, 'expand')
-        inputs_ssh, labels_ssh = inputs.cuda(), labels.cuda()
+        inputs_ssh, labels_ssh = inputs.cpu(), labels.cpu()
         outputs_ssh = ssh(inputs_ssh)
         loss_ssh = criterion(outputs_ssh, labels_ssh)
         grad_ssh = torch.autograd.grad(loss_ssh, ext.parameters())

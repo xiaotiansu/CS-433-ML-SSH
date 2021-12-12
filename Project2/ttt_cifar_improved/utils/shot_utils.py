@@ -7,14 +7,14 @@ def train_target(args):
     dset_loaders = digit_load(args)
     ## set base network
     if args.dset == 'u2m':
-        netF = network.LeNetBase().cuda()
+        netF = network.LeNetBase().cpu()
     elif args.dset == 'm2u':
-        netF = network.LeNetBase().cuda()  
+        netF = network.LeNetBase().cpu()  
     elif args.dset == 's2m':
-        netF = network.DTNBase().cuda()
+        netF = network.DTNBase().cpu()
 
-    netB = network.feat_bootleneck(type=args.classifier, feature_dim=netF.in_features, bottleneck_dim=args.bottleneck).cuda()
-    netC = network.feat_classifier(type=args.layer, class_num = args.class_num, bottleneck_dim=args.bottleneck).cuda()
+    netB = network.feat_bootleneck(type=args.classifier, feature_dim=netF.in_features, bottleneck_dim=args.bottleneck).cpu()
+    netC = network.feat_classifier(type=args.layer, class_num = args.class_num, bottleneck_dim=args.bottleneck).cpu()
 
     args.modelpath = args.output_dir + '/source_F.pt'   
     netF.load_state_dict(torch.load(args.modelpath))
@@ -55,14 +55,14 @@ def train_target(args):
             netF.eval()
             netB.eval()
             mem_label = obtain_label(dset_loaders['target_te'], netF, netB, netC, args)
-            mem_label = torch.from_numpy(mem_label).cuda()
+            mem_label = torch.from_numpy(mem_label).cpu()
             netF.train()
             netB.train()
 
         iter_num += 1
         lr_scheduler(optimizer, iter_num=iter_num, max_iter=max_iter)
 
-        inputs_test = inputs_test.cuda()
+        inputs_test = inputs_test.cpu()
         features_test = netB(netF(inputs_test))
         outputs_test = netC(features_test)
 
@@ -70,7 +70,7 @@ def train_target(args):
             pred = mem_label[tar_idx]
             classifier_loss = args.cls_par * nn.CrossEntropyLoss()(outputs_test, pred)
         else:
-            classifier_loss = torch.tensor(0.0).cuda()
+            classifier_loss = torch.tensor(0.0).cpu()
 
         if args.ent:
             softmax_out = nn.Softmax(dim=1)(outputs_test)
@@ -112,7 +112,7 @@ def obtain_shot_label(loader, ext, task_head, args, c=None):
             data = iter_test.next()
             inputs = data[0]
             labels = data[1]
-            inputs = inputs.cuda()
+            inputs = inputs.cpu()
             feas = ext(inputs)
             outputs = task_head(feas)
             if start_test:

@@ -17,7 +17,7 @@ def offline(trloader, ext, scale):
     with torch.no_grad():
         for batch_idx, (inputs, labels) in enumerate(trloader):
 
-            feat = ext(inputs.cuda())
+            feat = ext(inputs.cpu())
             cov = covariance(feat)
             mu = feat.mean(dim=0)
 

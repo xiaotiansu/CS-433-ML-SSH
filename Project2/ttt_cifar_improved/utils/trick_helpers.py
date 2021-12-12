@@ -17,7 +17,7 @@ def visu_feat(encoder, dataloader, figname, num_sample=9216):
     with torch.no_grad():
         for _ in range(num_batch):
             inputs, labels = next(dl_iter)
-            features = encoder(inputs.cuda())
+            features = encoder(inputs.cpu())
             stack_feat.append(features.cpu().numpy())
             stack_label.append(labels.numpy())
     features_concat = np.concatenate(stack_feat)

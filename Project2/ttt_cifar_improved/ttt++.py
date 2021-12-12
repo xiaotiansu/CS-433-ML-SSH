@@ -4,7 +4,7 @@ import argparse
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
+import datasets
 from utils.misc import *
 from utils.test_helpers import *
 from utils.prepare_dataset import *
@@ -29,8 +29,8 @@ from online import FeatureQueue
 # ----------------------------------
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', default='cifar10')
-parser.add_argument('--dataroot', default=None)
+parser.add_argument('--dataset', default='civil')
+parser.add_argument('--dataroot', default='.')
 parser.add_argument('--shared', default=None)
 ########################################################################
 parser.add_argument('--depth', default=26, type=int)
@@ -67,7 +67,7 @@ parser.add_argument('--temperature', default=0.5, type=float)
 parser.add_argument('--align_ext', action='store_true')
 parser.add_argument('--align_ssh', action='store_true')
 ########################################################################
-parser.add_argument('--model', default='resnet50', help='resnet50')
+parser.add_argument('--model', default='bert', help='bert')
 parser.add_argument('--save_every', default=100, type=int)
 ########################################################################
 parser.add_argument('--tsne', action='store_true')
@@ -91,8 +91,10 @@ cudnn.benchmark = True
 
 net, ext, head, ssh, classifier = build_bert(args, "bert")
 
-_, teloader = prepare_test_data(args)
-
+# _, teloader = prepare_test_data(args)
+device = torch.device("cpu")
+modelC = getattr(datasets, "civil")
+teloader, tv_loaders = modelC.getDataLoaders(args, device=device)
 # -------------------------------
 
 args.batch_size = min(args.batch_size, args.num_sample)
@@ -101,21 +103,28 @@ args.batch_size_align = min(args.batch_size_align, args.num_sample)
 args_align = copy.deepcopy(args)
 args_align.ssl = None
 args_align.batch_size = args.batch_size_align
+#
+# if args.method == 'align':
+#     _, trloader = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
+# else:
+#     _, trloader = prepare_train_data(args, args.num_sample)
+#
+# if args.method == 'both':
+#     _, trloader_extra = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
+#     trloader_extra_iter = iter(trloader_extra)
+# -------------------------------
+# load model
 
-if args.method == 'align':
-    _, trloader = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
-else:
-    _, trloader = prepare_train_data(args, args.num_sample)
-
-if args.method == 'both':
-    _, trloader_extra = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
-    trloader_extra_iter = iter(trloader_extra)
+trloader, tv_loaders = modelC.getDataLoaders(args, device=device)
+trloader_extra, teloader = tv_loaders['val'], tv_loaders['test']
+model = modelC(args, weights=None).to(device)
+# --------------------------------
 
 # -------------------------------
 
 print('Resuming from %s...' %(args.resume))
 
-load_resnet50(net, head, ssh, classifier, args)
+#load_resnet50(net, head, ssh, classifier, args)
 
 if torch.cuda.device_count() > 1:
     # ssh = torch.nn.DataParallel(ssh)
@@ -147,7 +156,7 @@ if args.method in ['align', 'both']:
     if args.align_ssh:
         args_align.scale = args.scale_ssh
         from models.SSHead import ExtractorHead
-        cov_src_ssh, coral_src_ssh, mu_src_ssh, mmd_src_ssh = offline(offlineloader, ExtractorHead(ext, head).cuda(), args.scale_ssh)
+        cov_src_ssh, coral_src_ssh, mu_src_ssh, mmd_src_ssh = offline(offlineloader, ExtractorHead(ext, head).cpu(), args.scale_ssh)
         scale_align_ssh = args.scale_ssh / coral_src_ssh
         scale_mmd_ssh = args.scale_ssh / mmd_src_ssh * MMD_SCALE_FACTOR
 
@@ -186,7 +195,7 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer,
     'min', factor=0.5, patience=10, cooldown=10,
     threshold=0.0001, threshold_mode='rel', min_lr=0.0001, verbose=True)
 
-criterion = SupConLoss(temperature=args.temperature).cuda()
+criterion = SupConLoss(temperature=args.temperature).cpu()
 
 # ----------- Improved Test-time Training ------------
 
@@ -226,14 +235,14 @@ for epoch in range(1, args.nepoch+1):
             if args.align_ext:
 
                 loss = 0
-                feat_ext = ext(inputs.cuda())
+                feat_ext = ext(inputs.cpu())
 
                 # queue
                 if args.queue_size > args.batch_size_align:
                     feat_queue = queue_ext.get()
                     queue_ext.update(feat_ext)
                     if feat_queue is not None:
-                        feat_ext = torch.cat([feat_ext, feat_queue.cuda()])
+                        feat_ext = torch.cat([feat_ext, feat_queue.cpu()])
 
                 # coral
                 if args.divergence in ['coral', 'all']:
@@ -251,14 +260,14 @@ for epoch in range(1, args.nepoch+1):
             if args.align_ssh:
 
                 loss = 0
-                feat_ssh = head(ext(inputs.cuda()))
+                feat_ssh = head(ext(inputs.cpu()))
 
                 # queue
                 if args.queue_size > args.batch_size_align:
                     feat_queue = queue_ssh.get()
                     queue_ssh.update(feat_ssh)
                     if feat_queue is not None:
-                        feat_ssh = torch.cat([feat_ssh, feat_queue.cuda()])
+                        feat_ssh = torch.cat([feat_ssh, feat_queue.cpu()])
 
                 if args.divergence in ['coral', 'all']:
                     cov_ssh = covariance(feat_ssh)
@@ -283,14 +292,14 @@ for epoch in range(1, args.nepoch+1):
             if args.align_ext:
 
                 loss = 0
-                feat_ext = ext(inputs.cuda())
+                feat_ext = ext(inputs.cpu())
 
                 # queue
                 if args.queue_size > args.batch_size_align:
                     feat_queue = queue_ext.get()
                     queue_ext.update(feat_ext)
                     if feat_queue is not None:
-                        feat_ext = torch.cat([feat_ext, feat_queue.cuda()])
+                        feat_ext = torch.cat([feat_ext, feat_queue.cpu()])
 
                 if args.divergence in ['coral', 'all']:
                     cov_ext = covariance(feat_ext)
@@ -306,14 +315,14 @@ for epoch in range(1, args.nepoch+1):
 
                 loss = 0
 
-                feat_ssh = head(ext(inputs.cuda()))
+                feat_ssh = head(ext(inputs.cpu()))
 
                 # queue
                 if args.queue_size > args.batch_size_align:
                     feat_queue = queue_ssh.get()
                     queue_ssh.update(feat_ssh)
                     if feat_queue is not None:
-                        feat_ssh = torch.cat([feat_ssh, feat_queue.cuda()])
+                        feat_ssh = torch.cat([feat_ssh, feat_queue.cpu()])
 
                 if args.divergence in ['coral', 'all']:
                     cov_ssh = covariance(feat_ssh)

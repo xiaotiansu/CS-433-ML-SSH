@@ -142,7 +142,7 @@ for epoch in range(1, args.nepoch+1):
     tic = time.time()
     ext.eval()
     mem_label = obtain_shot_label(trloader, ext, classifier, args)
-    mem_label = torch.from_numpy(mem_label).cuda()
+    mem_label = torch.from_numpy(mem_label).cpu()
     ext.train()
 
     # optimizer = lr_scheduler(optimizer, epoch, 30)
@@ -151,14 +151,14 @@ for epoch in range(1, args.nepoch+1):
         optimizer.zero_grad()
         classifier_loss = 0
         
-        features_test = ext(inputs.cuda())
+        features_test = ext(inputs.cpu())
         outputs_test = classifier(features_test)
 
         if args.cls_par > 0:
             pred = mem_label[batch_idx*args.batch_size:(batch_idx+1)*args.batch_size]
             classifier_loss = args.cls_par * nn.CrossEntropyLoss()(outputs_test, pred)
         else:
-            classifier_loss = torch.tensor(0.0).cuda()
+            classifier_loss = torch.tensor(0.0).cpu()
 
         if args.ent:
             softmax_out = nn.Softmax(dim=1)(outputs_test)
