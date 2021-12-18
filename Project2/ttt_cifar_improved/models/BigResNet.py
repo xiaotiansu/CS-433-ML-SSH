@@ -182,8 +182,11 @@ class SupConResNet(nn.Module):
                 'head not supported: {}'.format(head))
 
     def forward(self, x):
+        print("Before embedding={}".format(x.shape))
         feat = self.encoder(x)
+        print("After embedding={}".format(feat.shape))
         feat = F.normalize(self.head(feat), dim=1)
+        print("After projecting={}".format(feat.shape))
         return feat
 
 
