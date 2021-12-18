@@ -98,6 +98,7 @@ def build_resnet50(args):
 def build_bert(args, model):
     ext = None
     classes = 0
+    from models.BigResNet import SupConResNet
     from models.bert.bert import BertFeaturizer
     from models.bert.distilbert import DistilBertFeaturizer
 
@@ -117,12 +118,13 @@ def build_bert(args, model):
     net = ExtractorHead(ext, classifer).cuda()
 
     # TODO devise a ssh task
-    head = nn.Sequential(
-        nn.Linear(64 * args.width, 64 * args.width),
-        nn.ReLU(inplace=True),
-        nn.Linear(64 * args.width, 16 * args.width)
-    )
-    ssh = ExtractorHead(ext, head).cuda()
+    # head = nn.Sequential(
+    #     nn.Linear(64 * args.width, 64 * args.width),
+    #     nn.ReLU(inplace=True),
+    #     nn.Linear(64 * args.width, 16 * args.width)
+    # )
+    ssh = SupConResNet(ext).cuda()
+    head = ssh.head
     return net, ext, head, ssh, classifer
 
 def build_model(args):
