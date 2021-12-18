@@ -14,7 +14,7 @@ tesize = 10000
 
 class IWildData():
     def __init__(self, args):
-        self.dataset = IWildCamDataset(root_dir=os.path.join(args.data_dir, 'wilds'), download=True)
+        self.dataset = IWildCamDataset(root_dir=os.path.join(args.dataroot, 'wilds'), download=True)
         self.tr_transforms, self.te_transforms, self.simclr_transforms = prepare_transforms(args.dataset)
 
     def get_train_dataloader(self, args, num_sample=None):
