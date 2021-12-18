@@ -9,7 +9,7 @@ def train_target(args):
     if args.dset == 'u2m':
         netF = network.LeNetBase().cuda()
     elif args.dset == 'm2u':
-        netF = network.LeNetBase().cuda()  
+        netF = network.LeNetBase().cuda()
     elif args.dset == 's2m':
         netF = network.DTNBase().cuda()
 

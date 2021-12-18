@@ -96,11 +96,13 @@ def build_resnet50(args):
     return net, ext, head, ssh, classifier
 
 def build_bert(args, model):
+    ext = None
+    classes = 0
+    from models.BigResNet import SupConResNet
     from models.bert.bert import BertFeaturizer
     from models.bert.distilbert import DistilBertFeaturizer
 
-
-    if args.dataset == 'civlcomments':
+    if args.dataset == 'civil':
         classes = 2
     
     if model == "bert":
@@ -109,16 +111,21 @@ def build_bert(args, model):
 
     elif model == "distilbert":
         pretrained_model = "distilbert-base-uncased"
-        # todo 'model_kwargs'
+        # TODO 'model_kwargs'
         ext = DistilBertFeaturizer.from_pretrained(pretrained_model).cuda()
 
     classifer = nn.Linear(ext.d_out, classes).cuda()
     net = ExtractorHead(ext, classifer).cuda()
 
-    # todo devise a ssh task
-    sshead = 1
-    ssh = 1
-    return net, ext, sshead, ssh, classifer
+    # TODO devise a ssh task
+    # head = nn.Sequential(
+    #     nn.Linear(64 * args.width, 64 * args.width),
+    #     nn.ReLU(inplace=True),
+    #     nn.Linear(64 * args.width, 16 * args.width)
+    # )
+    ssh = SupConResNet(ext).cuda()
+    head = ssh.head
+    return net, ext, head, ssh, classifer
 
 def build_model(args):
     from models.ResNet import ResNetCifar as ResNet
@@ -179,7 +186,7 @@ def test(dataloader, model, sslabel=None):
     model.eval()
     correct = []
     losses = []
-    for batch_idx, (inputs, labels) in enumerate(dataloader):
+    for batch_idx, (inputs, labels, meta) in enumerate(dataloader):
         if sslabel is not None:
             inputs, labels = rotate_batch(inputs, sslabel)
         inputs, labels = inputs.cuda(), labels.cuda()
@@ -200,7 +207,7 @@ def test_grad_corr(dataloader, net, ssh, ext):
     net.eval()
     ssh.eval()
     corr = []
-    for batch_idx, (inputs, labels) in enumerate(dataloader):
+    for batch_idx, (inputs, labels, meta) in enumerate(dataloader):
         net.zero_grad()
         ssh.zero_grad()
         inputs_cls, labels_cls = inputs.cuda(), labels.cuda()

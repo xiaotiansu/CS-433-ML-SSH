@@ -263,6 +263,7 @@ def prepare_train_data(args, num_sample=None):
             trset = torchvision.datasets.CIFAR100(root=args.dataroot,
                                             train=True, download=True, transform=tr_transforms)
             print('Cifar100 training set')
+
     else:
         raise Exception('Dataset not found!')
 

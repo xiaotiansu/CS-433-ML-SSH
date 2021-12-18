@@ -146,7 +146,7 @@ for epoch in range(1, args.nepoch+1):
     ext.train()
 
     # optimizer = lr_scheduler(optimizer, epoch, 30)
-    for batch_idx, (inputs, labels) in enumerate(trloader):
+    for batch_idx, (inputs, labels, meta) in enumerate(trloader):
 
         optimizer.zero_grad()
         classifier_loss = 0

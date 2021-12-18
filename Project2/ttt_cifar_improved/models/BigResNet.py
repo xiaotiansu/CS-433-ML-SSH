@@ -165,15 +165,15 @@ class LinearBatchNorm(nn.Module):
 
 class SupConResNet(nn.Module):
     """backbone + projection head"""
-    def __init__(self, name='resnet50', head='mlp', feat_dim=128):
+    def __init__(self, ext, dim_in=256, head='mlp', feat_dim=300):
         super(SupConResNet, self).__init__()
-        model_fun, dim_in = model_dict[name]
-        self.encoder = model_fun()
+        # model_fun, dim_in = model_dict[name]
+        self.encoder = ext
         if head == 'linear':
             self.head = nn.Linear(dim_in, feat_dim)
         elif head == 'mlp':
             self.head = nn.Sequential(
-                nn.Linear(dim_in, dim_in),
+                nn.Linear(dim_in*3, dim_in),
                 nn.ReLU(inplace=True),
                 nn.Linear(dim_in, feat_dim)
             )
@@ -182,8 +182,11 @@ class SupConResNet(nn.Module):
                 'head not supported: {}'.format(head))
 
     def forward(self, x):
+        print("Before embedding={}".format(x.shape))
         feat = self.encoder(x)
+        print("After embedding={}".format(feat.shape))
         feat = F.normalize(self.head(feat), dim=1)
+        print("After projecting={}".format(feat.shape))
         return feat
 
 

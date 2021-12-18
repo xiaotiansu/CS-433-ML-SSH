@@ -4,7 +4,7 @@ import argparse
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
+import datasets
 from utils.misc import *
 from utils.test_helpers import *
 from utils.prepare_dataset import *
@@ -29,8 +29,8 @@ from online import FeatureQueue
 # ----------------------------------
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', default='cifar10')
-parser.add_argument('--dataroot', default=None)
+parser.add_argument('--dataset', default='civil')
+parser.add_argument('--dataroot', default='.')
 parser.add_argument('--shared', default=None)
 ########################################################################
 parser.add_argument('--depth', default=26, type=int)
@@ -67,7 +67,7 @@ parser.add_argument('--temperature', default=0.5, type=float)
 parser.add_argument('--align_ext', action='store_true')
 parser.add_argument('--align_ssh', action='store_true')
 ########################################################################
-parser.add_argument('--model', default='resnet50', help='resnet50')
+parser.add_argument('--model', default='bert', help='bert')
 parser.add_argument('--save_every', default=100, type=int)
 ########################################################################
 parser.add_argument('--tsne', action='store_true')
@@ -89,10 +89,7 @@ cudnn.benchmark = True
 
 # -------------------------------
 
-net, ext, head, ssh, classifier = build_resnet50(args)
-
-_, teloader = prepare_test_data(args)
-
+net, ext, head, ssh, classifier = build_bert(args, "bert")
 # -------------------------------
 
 args.batch_size = min(args.batch_size, args.num_sample)
@@ -101,21 +98,36 @@ args.batch_size_align = min(args.batch_size_align, args.num_sample)
 args_align = copy.deepcopy(args)
 args_align.ssl = None
 args_align.batch_size = args.batch_size_align
+#
+# if args.method == 'align':
+#     _, trloader = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
+# else:
+#     _, trloader = prepare_train_data(args, args.num_sample)
+#
+# if args.method == 'both':
+#     _, trloader_extra = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
+#     trloader_extra_iter = iter(trloader_extra)
+# -------------------------------
+# load model
+# _, teloader = prepare_test_data(args)
+
+device = torch.device("cuda")
+modelC = getattr(datasets, "civil")
+trloader, offlineloader, tv_loaders = modelC.getDataLoaders(args, device=device, frac= 0.01)
+trloader_extra, teloader = tv_loaders['val'], tv_loaders['test']
+trloader_extra_iter = iter(trloader_extra)
 
 if args.method == 'align':
-    _, trloader = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
-else:
-    _, trloader = prepare_train_data(args, args.num_sample)
+    trloader = trloader_extra
 
-if args.method == 'both':
-    _, trloader_extra = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
-    trloader_extra_iter = iter(trloader_extra)
+model = modelC(args, weights=None).to(device)
+# --------------------------------
 
 # -------------------------------
 
 print('Resuming from %s...' %(args.resume))
 
-load_resnet50(net, head, ssh, classifier, args)
+#load_resnet50(net, head, ssh, classifier, args)
 
 if torch.cuda.device_count() > 1:
     # ssh = torch.nn.DataParallel(ssh)
@@ -131,7 +143,7 @@ if args.method in ['align', 'both']:
         # reset batch size by queue size
         args_align.batch_size = args.queue_size
 
-    _, offlineloader = prepare_train_data(args_align)
+    # _, offlineloader = prepare_train_data(args_align)
 
     MMD_SCALE_FACTOR = 0.5
     if args.align_ext:
@@ -206,7 +218,7 @@ for epoch in range(1, args.nepoch+1):
         head.train()
     ext.train()
 
-    for batch_idx, (inputs, labels) in enumerate(trloader):
+    for batch_idx, (inputs, labels, meta) in enumerate(trloader):
 
         optimizer.zero_grad()
 
@@ -225,6 +237,7 @@ for epoch in range(1, args.nepoch+1):
         if args.method == 'align':
             if args.align_ext:
 
+                #TODO to change input shape for align (now: inputs is a list of input, size =2)
                 loss = 0
                 feat_ext = ext(inputs.cuda())
 

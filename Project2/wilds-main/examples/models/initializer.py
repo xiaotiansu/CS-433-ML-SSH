@@ -135,6 +135,7 @@ def initialize_bert_based_model(config, d_out, is_featurizer=False):
         raise ValueError(f'Model: {config.model} not recognized.')
     return model
 
+
 def initialize_torchvision_model(name, d_out, **kwargs):
     import torchvision
 
