@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+from dataloader.dataloader import IWildData
 from utils.misc import *
 from utils.test_helpers import *
 from utils.prepare_dataset import *
@@ -91,8 +92,10 @@ cudnn.benchmark = True
 
 net, ext, head, ssh, classifier = build_resnet50(args)
 
-_, teloader = prepare_test_data(args)
+dataloader = IWildData(args)
 
+# _, teloader = prepare_test_data(args)
+teloader = dataloader.get_test_dataloader(args)
 # -------------------------------
 
 args.batch_size = min(args.batch_size, args.num_sample)
@@ -103,12 +106,16 @@ args_align.ssl = None
 args_align.batch_size = args.batch_size_align
 
 if args.method == 'align':
-    _, trloader = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
+    # _, trloader = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
+    trloader = dataloader.get_test_dataloader(args_align, ttt=True, num_sample=args.num_sample)
+
 else:
-    _, trloader = prepare_train_data(args, args.num_sample)
+    # _, trloader = prepare_train_data(args, args.num_sample)
+    trloader = dataloader.get_train_dataloader(args, num_sample=args.num_sample)
 
 if args.method == 'both':
-    _, trloader_extra = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
+    # _, trloader_extra = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
+    trloader_extra = dataloader.get_test_dataloader(args_align, ttt=True, num_sample=args.num_sample)
     trloader_extra_iter = iter(trloader_extra)
 
 # -------------------------------
@@ -129,7 +136,8 @@ if args.method in ['align', 'both']:
         # reset batch size by queue size
         args_align.batch_size = args.queue_size
 
-    _, offlineloader = prepare_train_data(args_align)
+    # _, offlineloader = prepare_train_data(args_align)
+    offlineloader = dataloader.get_train_dataloader(args_align)
 
     MMD_SCALE_FACTOR = 0.5
     if args.align_ext:
@@ -157,7 +165,8 @@ if args.method in ['align', 'both']:
 if args.tsne:
     args_src = copy.deepcopy(args)
     args_src.corruption = 'original'
-    _, srcloader = prepare_test_data(args_src)
+    # _, srcloader = prepare_test_data(args_src)
+    srcloader = dataloader.get_test_dataloader(args_src)
     feat_src, label_src, tsne_src = visu_feat(ext, srcloader, os.path.join(args.outf, 'original.pdf'))
     feat_tar, label_tar, tsne_tar = visu_feat(ext, teloader, os.path.join(args.outf, args.corruption + '_test_class.pdf'))
     calculate_distance(feat_src, label_src, tsne_src, feat_tar, label_tar, tsne_tar)

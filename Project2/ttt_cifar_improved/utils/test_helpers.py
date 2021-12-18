@@ -77,15 +77,7 @@ def build_resnet50(args):
     from models.SSHead import ExtractorHead
 
     print('Building ResNet50...')
-    if args.dataset == 'cifar10':
-        classes = 10
-    elif args.dataset == 'cifar7':
-        if not hasattr(args, 'modified') or args.modified:
-            classes = 7
-        else:
-            classes = 10
-    elif args.dataset == "cifar100":
-        classes = 100
+    classes = 186
 
     classifier = LinearClassifier(num_classes=classes).cuda()
     ssh = SupConResNet().cuda()
