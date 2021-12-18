@@ -35,9 +35,15 @@
 # bash scripts/run_tent_cifar.sh snow tent 256
 # bash scripts/run_tent_cifar.sh snow tent 512
 
-bs=1024
-factor=8
-qs=$((${bs}*${factor}))
+# bs=1024
+# factor=8
+# qs=$((${bs}*${factor}))
 
+# bash scripts/run_ttt++_cifar.sh snow ssl $bs $qs
 # bash scripts/run_ttt++_cifar.sh snow align $bs $qs
-bash scripts/run_ttt++_cifar.sh snow both $bs $qs
+# bash scripts/run_ttt++_cifar.sh snow both $bs $qs
+
+
+bash scripts/run_ttt++_cifar10.sh
+bash scripts/run_tent_cifar10.sh
+bash scripts/run_shot_cifar10.sh

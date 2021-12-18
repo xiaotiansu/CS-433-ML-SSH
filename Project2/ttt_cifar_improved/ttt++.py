@@ -43,7 +43,7 @@ parser.add_argument('--workers', default=0, type=int)
 parser.add_argument('--num_sample', default=1000000, type=int)
 ########################################################################
 parser.add_argument('--lr', default=0.001, type=float)
-parser.add_argument('--nepoch', default=100, type=int, help='maximum number of epoch for ttt')
+parser.add_argument('--nepoch', default=500, type=int, help='maximum number of epoch for ttt')
 parser.add_argument('--bnepoch', default=2, type=int, help='first few epochs to update bn stat')
 parser.add_argument('--delayepoch', default=0, type=int)
 parser.add_argument('--stopepoch', default=25, type=int)
@@ -118,8 +118,6 @@ print('Resuming from %s...' %(args.resume))
 load_resnet50(net, head, ssh, classifier, args)
 
 if torch.cuda.device_count() > 1:
-    # ssh = torch.nn.DataParallel(ssh)
-    # net = torch.nn.DataParallel(net)
     ext = torch.nn.DataParallel(ext)
 
 # ----------- Offline Feature Summarization ------------
@@ -189,8 +187,6 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer,
 criterion = SupConLoss(temperature=args.temperature).cuda()
 
 # ----------- Improved Test-time Training ------------
-
-# losses = AverageMeter('Loss', ':.4e')
 
 is_both_activated = False
 
@@ -330,7 +326,6 @@ for epoch in range(1, args.nepoch+1):
 
     err_cls = test(teloader, net)[0]
     all_err_cls.append(err_cls)
-    # all_err_ssh.append(loss.item())
 
     toc = time.time()
     print(('Epoch %d/%d (%.0fs):' %(epoch, args.nepoch, toc-tic)).ljust(24) +

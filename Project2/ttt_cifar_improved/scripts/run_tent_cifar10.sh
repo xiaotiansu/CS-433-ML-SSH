@@ -2,7 +2,6 @@
 
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
-DATADIR=/data/cifar
 DATASET=cifar10
 
 # ===================================

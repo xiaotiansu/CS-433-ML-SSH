@@ -2,7 +2,6 @@
 
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
-DATADIR=/data/cifar
 DATASET=cifar10
 
 # ===================================
@@ -11,7 +10,6 @@ LEVEL=5
 
 if [ "$#" -lt 2 ]; then
 	CORRUPT=snow
-	# CORRUPT=cifar_new
 
 	METHOD=shot
 	NSAMPLE=100000
