@@ -116,13 +116,13 @@ def obtain_shot_label(loader, ext, task_head, args, c=None):
             feas = ext(inputs)
             outputs = task_head(feas)
             if start_test:
-                all_fea = feas.float().cuda()
-                all_output = outputs.float().cuda()
+                all_fea = feas.float().cpu()
+                all_output = outputs.float().cpu()
                 all_label = labels.float()
                 start_test = False
             else:
-                all_fea = torch.cat((all_fea, feas.float().cuda()), 0)
-                all_output = torch.cat((all_output, outputs.float().cuda()), 0)
+                all_fea = torch.cat((all_fea, feas.float().cpu()), 0)
+                all_output = torch.cat((all_output, outputs.float().cpu()), 0)
                 all_label = torch.cat((all_label, labels.float()), 0)
     all_output = nn.Softmax(dim=1)(all_output)
     _, predict = torch.max(all_output, 1)
@@ -130,10 +130,10 @@ def obtain_shot_label(loader, ext, task_head, args, c=None):
     
     all_fea = torch.cat((all_fea, torch.ones(all_fea.size(0), 1)), 1)
     all_fea = (all_fea.t() / torch.norm(all_fea, p=2, dim=1)).t()
-    all_fea = all_fea.float().cuda().numpy()
+    all_fea = all_fea.float().cpu().numpy()
 
     K = all_output.size(1)
-    aff = all_output.float().cuda().numpy()
+    aff = all_output.float().cpu().numpy()
     initc = aff.transpose().dot(all_fea)
     initc = initc / (1e-8 + aff.sum(axis=0)[:,None])
     dd = cdist(all_fea, initc, 'cosine')

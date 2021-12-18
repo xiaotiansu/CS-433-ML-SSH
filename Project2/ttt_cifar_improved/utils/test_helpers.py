@@ -193,9 +193,9 @@ def test(dataloader, model, sslabel=None):
         with torch.no_grad():
             outputs = model(inputs)
             loss = criterion(outputs, labels)
-            losses.append(loss.cuda())
+            losses.append(loss.cpu())
             _, predicted = outputs.max(1)
-            correct.append(predicted.eq(labels).cuda())
+            correct.append(predicted.eq(labels).cpu())
     correct = torch.cat(correct).numpy()
     losses = torch.cat(losses).numpy()
     model.train()

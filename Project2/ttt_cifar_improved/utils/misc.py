@@ -7,7 +7,7 @@ def get_grad(params):
 	if isinstance(params, torch.Tensor):
 		params = [params]
 	params = list(filter(lambda p: p.grad is not None, params))
-	grad = [p.grad.data.cuda().view(-1) for p in params]
+	grad = [p.grad.data.cpu().view(-1) for p in params]
 	return torch.cat(grad)
 
 def write_to_txt(name, content):

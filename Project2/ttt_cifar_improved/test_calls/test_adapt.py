@@ -93,7 +93,7 @@ def trerr_single(model, image):
 	with torch.no_grad():
 		outputs = model(inputs.cuda())
 		_, predicted = outputs.max(1)
-	return predicted.eq(labels).cuda()
+	return predicted.eq(labels).cpu()
 
 print('Running...')
 correct = []
