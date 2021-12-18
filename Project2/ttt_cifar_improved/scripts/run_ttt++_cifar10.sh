@@ -9,7 +9,7 @@ DATASET=cifar10
 LEVEL=5
 
 if [ "$#" -lt 2 ]; then
-	CORRUPT=snow
+	CORRUPT=original
 
 	# METHOD=ssl
 	# METHOD=align

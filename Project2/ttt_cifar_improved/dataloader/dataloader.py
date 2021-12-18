@@ -20,12 +20,12 @@ class IWildData():
     def get_train_dataloader(self, args, num_sample=None):
         if hasattr(args, 'ssl') and args.ssl == 'contrastive':
             train_data = self.dataset.get_subset('train', transform=TwoCropTransform(self.tr_transforms))
-            if hasattr(args, 'corruption') and args.corruption in common_corruptions:
-                print('Contrastive on %s level %d' %(args.corruption, args.level))
-                tesize = 10000
-                trset_raw = np.load(args.dataroot + '/iwildcam/%s.npy' %(args.corruption))
-                trset_raw = trset_raw[(args.level-1)*tesize: args.level*tesize]
-                train_data.data = trset_raw
+            # if hasattr(args, 'corruption') and args.corruption in common_corruptions:
+            #     print('Contrastive on %s level %d' %(args.corruption, args.level))
+            #     tesize = 10000
+            #     trset_raw = np.load(args.dataroot + '/iwildcam/%s.npy' %(args.corruption))
+            #     trset_raw = trset_raw[(args.level-1)*tesize: args.level*tesize]
+            #     train_data.data = trset_raw
         else:
             train_data = self.dataset.get_subset('train', transform=self.tr_transforms)
 
