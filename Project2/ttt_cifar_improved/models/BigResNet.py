@@ -173,7 +173,7 @@ class SupConResNet(nn.Module):
             self.head = nn.Linear(dim_in, feat_dim)
         elif head == 'mlp':
             self.head = nn.Sequential(
-                nn.Linear(dim_in, dim_in*3),
+                nn.Linear(dim_in*3, dim_in),
                 nn.ReLU(inplace=True),
                 nn.Linear(dim_in, feat_dim)
             )
