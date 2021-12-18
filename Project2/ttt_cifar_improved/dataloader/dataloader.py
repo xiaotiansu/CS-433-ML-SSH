@@ -19,7 +19,7 @@ class IWildData():
 
     def get_train_dataloader(self, args, num_sample=None):
         if hasattr(args, 'ssl') and args.ssl == 'contrastive':
-            train_data = self.dataset.get_subset('train', transform=TwoCropTransform(self.tr_transforms))
+            train_data = self.dataset.get_subset('train', frac = 0.01, transform=TwoCropTransform(self.tr_transforms))
             # if hasattr(args, 'corruption') and args.corruption in common_corruptions:
             #     print('Contrastive on %s level %d' %(args.corruption, args.level))
             #     tesize = 10000
@@ -27,7 +27,7 @@ class IWildData():
             #     trset_raw = trset_raw[(args.level-1)*tesize: args.level*tesize]
             #     train_data.data = trset_raw
         else:
-            train_data = self.dataset.get_subset('train', transform=self.tr_transforms)
+            train_data = self.dataset.get_subset('train', frac = 0.01, transform=self.tr_transforms)
 
         if not hasattr(args, 'workers') or args.workers < 2:
             pin_memory = False
@@ -46,13 +46,13 @@ class IWildData():
     def get_test_dataloader(self, args, ttt=False, num_sample=None):
         if not hasattr(args, 'corruption') or args.corruption == 'original':
             print('Test on the original test set')
-            teset = self.dataset.get_subset('test', transform=self.te_transforms)
+            teset = self.dataset.get_subset('test', frac = 0.01, transform=self.te_transforms)
 
         elif args.corruption in common_corruptions:
             print('Test on %s level %d' % (args.corruption, args.level))
             teset_raw = np.load(args.dataroot + '/iwildcam/%s.npy' % (args.corruption))
             teset_raw = teset_raw[(args.level - 1) * tesize: args.level * tesize]
-            teset = self.dataset.get_subset('test', transform=self.te_transforms)
+            teset = self.dataset.get_subset('test', frac = 0.01, transform=self.te_transforms)
             teset.data = teset_raw
         else:
             raise Exception('Corruption not found!')
@@ -69,9 +69,9 @@ class IWildData():
             shuffle = True
             drop_last = False
 
-        if num_sample and num_sample < teset.data.shape[0]:
-            teset.data = teset.data[:num_sample]
-            print("Truncate the test set to {:d} samples".format(num_sample))
+        # if num_sample and num_sample < teset.data.shape[0]:
+        #     teset.data = teset.data[:num_sample]
+        #     print("Truncate the test set to {:d} samples".format(num_sample))
 
         teloader = torch.utils.data.DataLoader(teset, batch_size=args.batch_size,
                                                shuffle=shuffle, num_workers=args.workers,
