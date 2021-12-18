@@ -117,9 +117,13 @@ def build_bert(args, model):
     net = ExtractorHead(ext, classifer).cuda()
 
     # TODO devise a ssh task
-    sshead = 1
-    ssh = 1
-    return net, ext, sshead, ssh, classifer
+    head = nn.Sequential(
+        nn.Linear(64 * args.width, 64 * args.width),
+        nn.ReLU(inplace=True),
+        nn.Linear(64 * args.width, 16 * args.width)
+    )
+    ssh = ExtractorHead(ext, head).cuda()
+    return net, ext, head, ssh, classifer
 
 def build_model(args):
     from models.ResNet import ResNetCifar as ResNet
