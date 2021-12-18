@@ -110,10 +110,16 @@ args_align.batch_size = args.batch_size_align
 # -------------------------------
 # load model
 # _, teloader = prepare_test_data(args)
+
 device = torch.device("cuda")
 modelC = getattr(datasets, "civil")
 trloader, offlineloader, tv_loaders = modelC.getDataLoaders(args, device=device, frac= 0.01)
 trloader_extra, teloader = tv_loaders['val'], tv_loaders['test']
+trloader_extra_iter = iter(trloader_extra)
+
+if args.method == 'align':
+    trloader = trloader_extra
+
 model = modelC(args, weights=None).to(device)
 # --------------------------------
 
@@ -231,6 +237,7 @@ for epoch in range(1, args.nepoch+1):
         if args.method == 'align':
             if args.align_ext:
 
+                #TODO to change input shape for align (now: inputs is a list of input, size =2)
                 loss = 0
                 feat_ext = ext(inputs.cuda())
 

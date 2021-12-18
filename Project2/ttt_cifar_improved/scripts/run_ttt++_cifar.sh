@@ -14,8 +14,8 @@ if [ "$#" -lt 2 ]; then
 	# CORRUPT=cifar_new
 
 	# METHOD=ssl
-	METHOD=align
-	# METHOD=both
+#	METHOD=align
+	 METHOD=both
 	# COEF=1.0
 	# NSAMPLE=100000
 	BS_ALIGN=32
