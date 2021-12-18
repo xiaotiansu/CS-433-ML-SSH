@@ -7,14 +7,14 @@ def train_target(args):
     dset_loaders = digit_load(args)
     ## set base network
     if args.dset == 'u2m':
-        netF = network.LeNetBase().cpu()
+        netF = network.LeNetBase().cuda()
     elif args.dset == 'm2u':
-        netF = network.LeNetBase().cpu()  
+        netF = network.LeNetBase().cuda()
     elif args.dset == 's2m':
-        netF = network.DTNBase().cpu()
+        netF = network.DTNBase().cuda()
 
-    netB = network.feat_bootleneck(type=args.classifier, feature_dim=netF.in_features, bottleneck_dim=args.bottleneck).cpu()
-    netC = network.feat_classifier(type=args.layer, class_num = args.class_num, bottleneck_dim=args.bottleneck).cpu()
+    netB = network.feat_bootleneck(type=args.classifier, feature_dim=netF.in_features, bottleneck_dim=args.bottleneck).cuda()
+    netC = network.feat_classifier(type=args.layer, class_num = args.class_num, bottleneck_dim=args.bottleneck).cuda()
 
     args.modelpath = args.output_dir + '/source_F.pt'   
     netF.load_state_dict(torch.load(args.modelpath))
@@ -55,14 +55,14 @@ def train_target(args):
             netF.eval()
             netB.eval()
             mem_label = obtain_label(dset_loaders['target_te'], netF, netB, netC, args)
-            mem_label = torch.from_numpy(mem_label).cpu()
+            mem_label = torch.from_numpy(mem_label).cuda()
             netF.train()
             netB.train()
 
         iter_num += 1
         lr_scheduler(optimizer, iter_num=iter_num, max_iter=max_iter)
 
-        inputs_test = inputs_test.cpu()
+        inputs_test = inputs_test.cuda()
         features_test = netB(netF(inputs_test))
         outputs_test = netC(features_test)
 
@@ -70,7 +70,7 @@ def train_target(args):
             pred = mem_label[tar_idx]
             classifier_loss = args.cls_par * nn.CrossEntropyLoss()(outputs_test, pred)
         else:
-            classifier_loss = torch.tensor(0.0).cpu()
+            classifier_loss = torch.tensor(0.0).cuda()
 
         if args.ent:
             softmax_out = nn.Softmax(dim=1)(outputs_test)
@@ -112,17 +112,17 @@ def obtain_shot_label(loader, ext, task_head, args, c=None):
             data = iter_test.next()
             inputs = data[0]
             labels = data[1]
-            inputs = inputs.cpu()
+            inputs = inputs.cuda()
             feas = ext(inputs)
             outputs = task_head(feas)
             if start_test:
-                all_fea = feas.float().cpu()
-                all_output = outputs.float().cpu()
+                all_fea = feas.float().cuda()
+                all_output = outputs.float().cuda()
                 all_label = labels.float()
                 start_test = False
             else:
-                all_fea = torch.cat((all_fea, feas.float().cpu()), 0)
-                all_output = torch.cat((all_output, outputs.float().cpu()), 0)
+                all_fea = torch.cat((all_fea, feas.float().cuda()), 0)
+                all_output = torch.cat((all_output, outputs.float().cuda()), 0)
                 all_label = torch.cat((all_label, labels.float()), 0)
     all_output = nn.Softmax(dim=1)(all_output)
     _, predict = torch.max(all_output, 1)
@@ -130,10 +130,10 @@ def obtain_shot_label(loader, ext, task_head, args, c=None):
     
     all_fea = torch.cat((all_fea, torch.ones(all_fea.size(0), 1)), 1)
     all_fea = (all_fea.t() / torch.norm(all_fea, p=2, dim=1)).t()
-    all_fea = all_fea.float().cpu().numpy()
+    all_fea = all_fea.float().cuda().numpy()
 
     K = all_output.size(1)
-    aff = all_output.float().cpu().numpy()
+    aff = all_output.float().cuda().numpy()
     initc = aff.transpose().dot(all_fea)
     initc = initc / (1e-8 + aff.sum(axis=0)[:,None])
     dd = cdist(all_fea, initc, 'cosine')

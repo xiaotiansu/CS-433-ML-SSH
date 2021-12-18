@@ -90,11 +90,6 @@ cudnn.benchmark = True
 # -------------------------------
 
 net, ext, head, ssh, classifier = build_bert(args, "bert")
-
-# _, teloader = prepare_test_data(args)
-device = torch.device("cpu")
-modelC = getattr(datasets, "civil")
-teloader, tv_loaders = modelC.getDataLoaders(args, device=device)
 # -------------------------------
 
 args.batch_size = min(args.batch_size, args.num_sample)
@@ -114,8 +109,10 @@ args_align.batch_size = args.batch_size_align
 #     trloader_extra_iter = iter(trloader_extra)
 # -------------------------------
 # load model
-
-trloader, tv_loaders = modelC.getDataLoaders(args, device=device)
+# _, teloader = prepare_test_data(args)
+device = torch.device("cuda")
+modelC = getattr(datasets, "civil")
+trloader, offlineloader, tv_loaders = modelC.getDataLoaders(args, device=device, frac= 0.01)
 trloader_extra, teloader = tv_loaders['val'], tv_loaders['test']
 model = modelC(args, weights=None).to(device)
 # --------------------------------
@@ -140,7 +137,7 @@ if args.method in ['align', 'both']:
         # reset batch size by queue size
         args_align.batch_size = args.queue_size
 
-    _, offlineloader = prepare_train_data(args_align)
+    # _, offlineloader = prepare_train_data(args_align)
 
     MMD_SCALE_FACTOR = 0.5
     if args.align_ext:
@@ -156,7 +153,7 @@ if args.method in ['align', 'both']:
     if args.align_ssh:
         args_align.scale = args.scale_ssh
         from models.SSHead import ExtractorHead
-        cov_src_ssh, coral_src_ssh, mu_src_ssh, mmd_src_ssh = offline(offlineloader, ExtractorHead(ext, head).cpu(), args.scale_ssh)
+        cov_src_ssh, coral_src_ssh, mu_src_ssh, mmd_src_ssh = offline(offlineloader, ExtractorHead(ext, head).cuda(), args.scale_ssh)
         scale_align_ssh = args.scale_ssh / coral_src_ssh
         scale_mmd_ssh = args.scale_ssh / mmd_src_ssh * MMD_SCALE_FACTOR
 
@@ -195,7 +192,7 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer,
     'min', factor=0.5, patience=10, cooldown=10,
     threshold=0.0001, threshold_mode='rel', min_lr=0.0001, verbose=True)
 
-criterion = SupConLoss(temperature=args.temperature).cpu()
+criterion = SupConLoss(temperature=args.temperature).cuda()
 
 # ----------- Improved Test-time Training ------------
 
@@ -215,7 +212,7 @@ for epoch in range(1, args.nepoch+1):
         head.train()
     ext.train()
 
-    for batch_idx, (inputs, labels) in enumerate(trloader):
+    for batch_idx, (inputs, labels, meta) in enumerate(trloader):
 
         optimizer.zero_grad()
 
@@ -235,14 +232,14 @@ for epoch in range(1, args.nepoch+1):
             if args.align_ext:
 
                 loss = 0
-                feat_ext = ext(inputs.cpu())
+                feat_ext = ext(inputs.cuda())
 
                 # queue
                 if args.queue_size > args.batch_size_align:
                     feat_queue = queue_ext.get()
                     queue_ext.update(feat_ext)
                     if feat_queue is not None:
-                        feat_ext = torch.cat([feat_ext, feat_queue.cpu()])
+                        feat_ext = torch.cat([feat_ext, feat_queue.cuda()])
 
                 # coral
                 if args.divergence in ['coral', 'all']:
@@ -260,14 +257,14 @@ for epoch in range(1, args.nepoch+1):
             if args.align_ssh:
 
                 loss = 0
-                feat_ssh = head(ext(inputs.cpu()))
+                feat_ssh = head(ext(inputs.cuda()))
 
                 # queue
                 if args.queue_size > args.batch_size_align:
                     feat_queue = queue_ssh.get()
                     queue_ssh.update(feat_ssh)
                     if feat_queue is not None:
-                        feat_ssh = torch.cat([feat_ssh, feat_queue.cpu()])
+                        feat_ssh = torch.cat([feat_ssh, feat_queue.cuda()])
 
                 if args.divergence in ['coral', 'all']:
                     cov_ssh = covariance(feat_ssh)
@@ -292,14 +289,14 @@ for epoch in range(1, args.nepoch+1):
             if args.align_ext:
 
                 loss = 0
-                feat_ext = ext(inputs.cpu())
+                feat_ext = ext(inputs.cuda())
 
                 # queue
                 if args.queue_size > args.batch_size_align:
                     feat_queue = queue_ext.get()
                     queue_ext.update(feat_ext)
                     if feat_queue is not None:
-                        feat_ext = torch.cat([feat_ext, feat_queue.cpu()])
+                        feat_ext = torch.cat([feat_ext, feat_queue.cuda()])
 
                 if args.divergence in ['coral', 'all']:
                     cov_ext = covariance(feat_ext)
@@ -315,14 +312,14 @@ for epoch in range(1, args.nepoch+1):
 
                 loss = 0
 
-                feat_ssh = head(ext(inputs.cpu()))
+                feat_ssh = head(ext(inputs.cuda()))
 
                 # queue
                 if args.queue_size > args.batch_size_align:
                     feat_queue = queue_ssh.get()
                     queue_ssh.update(feat_ssh)
                     if feat_queue is not None:
-                        feat_ssh = torch.cat([feat_ssh, feat_queue.cpu()])
+                        feat_ssh = torch.cat([feat_ssh, feat_queue.cuda()])
 
                 if args.divergence in ['coral', 'all']:
                     cov_ssh = covariance(feat_ssh)

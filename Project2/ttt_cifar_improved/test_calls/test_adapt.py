@@ -49,7 +49,7 @@ if args.online:
 	net.load_state_dict(ckpt['net'])
 	head.load_state_dict(ckpt['head'])
 
-criterion_ssh = nn.CrossEntropyLoss().cpu()
+criterion_ssh = nn.CrossEntropyLoss().cuda()
 if args.fix_ssh:
 	optimizer_ssh = optim.SGD(ext.parameters(), lr=args.lr)
 else:
@@ -67,7 +67,7 @@ def adapt_single(image):
 		inputs = [tr_transforms(image) for _ in range(args.batch_size)]
 		inputs = torch.stack(inputs)
 		inputs_ssh, labels_ssh = rotate_batch(inputs, 'rand')
-		inputs_ssh, labels_ssh = inputs_ssh.cpu(), labels_ssh.cpu()
+		inputs_ssh, labels_ssh = inputs_ssh.cuda(), labels_ssh.cuda()
 		optimizer_ssh.zero_grad()
 		outputs_ssh = ssh(inputs_ssh)
 		loss_ssh = criterion_ssh(outputs_ssh, labels_ssh)
@@ -78,7 +78,7 @@ def test_single(model, image, label):
 	model.eval()
 	inputs = te_transforms(image).unsqueeze(0)
 	with torch.no_grad():
-		outputs = model(inputs.cpu())
+		outputs = model(inputs.cuda())
 		_, predicted = outputs.max(1)
 		confidence = nn.functional.softmax(outputs, dim=1).squeeze()[label].item()
 	correctness = 1 if predicted.item() == label else 0
@@ -89,11 +89,11 @@ def trerr_single(model, image):
 	labels = torch.LongTensor([0, 1, 2, 3])
 	inputs = torch.stack([te_transforms(image) for _ in range(4)])
 	inputs = rotate_batch_with_labels(inputs, labels)
-	inputs, labels = inputs.cpu(), labels.cpu()
+	inputs, labels = inputs.cuda(), labels.cuda()
 	with torch.no_grad():
-		outputs = model(inputs.cpu())
+		outputs = model(inputs.cuda())
 		_, predicted = outputs.max(1)
-	return predicted.eq(labels).cpu()
+	return predicted.eq(labels).cuda()
 
 print('Running...')
 correct = []

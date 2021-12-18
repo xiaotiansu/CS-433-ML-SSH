@@ -74,27 +74,34 @@ class Model(nn.Module):
         self.load_state_dict(deepcopy(weights))
 
     @staticmethod
-    def getDataLoaders(args, device):
+    def getDataLoaders(args, device, frac = 1.0):
         dataset = CivilCommentsDataset(root_dir=os.path.join(args.dataroot, 'wilds'), download=True)
+        print(dataset)
         # get all train data
         transform = initialize_bert_transform()
-        train_data = dataset.get_subset('train', transform=TwoCropTransform(transform))
+        train_data = dataset.get_subset('train', frac= frac, transform=TwoCropTransform(transform))
+        offline_data = dataset.get_subset('train', frac= frac, transform=transform)
         # separate into subsets by distribution
         train_sets = CivilComments_Batched_Dataset(train_data, batch_size=args.batch_size)
+        offline_sets = CivilComments_Batched_Dataset(offline_data, batch_size=args.batch_size)
+        # get the loaders
+        kwargs = {'num_workers': 4, 'pin_memory': True, 'drop_last': True} \
+            if device.type == "cuda" else {}
+        train_loaders = DataLoader(train_sets, batch_size=args.batch_size, shuffle=True, **kwargs)
+        offline_loaders = DataLoader(offline_sets, batch_size=args.batch_size, shuffle=True, **kwargs)
+
         # tadatasetke subset of test and validation, making sure that only labels appeared in train
         # are included
         datasets = {}
         for split in dataset.split_dict:
             if split != 'train':
-                datasets[split] = dataset.get_subset(split, transform=transform)
-        # get the loaders
-        kwargs = {'num_workers': 4, 'pin_memory': True, 'drop_last': False} \
-            if device.type == "cuda" else {}
-        train_loaders = DataLoader(train_sets, batch_size=args.batch_size, shuffle=True, **kwargs)
+                datasets[split] = dataset.get_subset(split, frac=0.01, transform=transform)
+
         tv_loaders = {}
         for split, dataset in datasets.items():
             tv_loaders[split] = get_eval_loader('standard', dataset, batch_size=256)
-        return train_loaders, tv_loaders
+
+        return train_loaders, offline_loaders, tv_loaders
 
     def forward(self, x):
         return self.model(x)
