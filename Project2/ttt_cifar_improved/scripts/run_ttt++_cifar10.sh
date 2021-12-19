@@ -30,8 +30,10 @@ BS_SSL=256
 BS_ALIGN=256
 QS=1536
 DIVERGENCE=all
+RESUME=save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_0
 
 echo 'DATASET: '${DATASET}
+echo 'RESUME:  '${RESUME}
 echo 'CORRUPT: '${CORRUPT}
 echo 'METHOD:' ${METHOD}
 echo 'DIVERGENCE:' ${DIVERGENCE}
@@ -47,7 +49,7 @@ printf '\n---------------------\n\n'
 
 python ttt++.py \
 	--dataroot ${DATADIR} \
-	--resume results/${DATASET}_joint_resnet50 \
+	--resume ${RESUME} \
 	--outf results/${DATASET}_ttt_simclr_joint_resnet50 \
 	--corruption ${CORRUPT} \
 	--level ${LEVEL} \
@@ -63,5 +65,6 @@ python ttt++.py \
 	--divergence ${DIVERGENCE} \
 	--align_ssh \
 	--align_ext \
-	--num_sample ${NSAMPLE}
+	--num_sample ${NSAMPLE} \
+	--ckpt 50
 	# --tsne
