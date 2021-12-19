@@ -6,6 +6,7 @@ import argparse
 import time
 import math
 
+import numpy as np
 import tensorboard_logger as tb_logger
 import torch
 import torch.backends.cudnn as cudnn
@@ -226,8 +227,9 @@ def validate(val_loader, model, criterion, opt):
         end = time.time()
         for idx, data in enumerate(val_loader):
             images, labels = util.unpack_data(data)
-            with torch.no_grad():
-                images = [t.numpy() for t in images]
+            images = np.array(images)
+            # with torch.no_grad():
+            #     images = [t.numpy() for t in images]
             # images = images.float().cuda()
             # labels = labels.cuda()
             torch.tensor(images).to(device)
