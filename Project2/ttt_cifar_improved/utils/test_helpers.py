@@ -38,7 +38,7 @@ def load_resnet50(net, head, ssh, classifier, args):
 
     pretrained_dict = {k:v for k, v in state_dict.items() if k in net_dict and "fc" not in k}
     net_dict["head.fc.weight"] = model_dict["head.fc.weight"]
-    net_dict["head.fc.weight"] = model_dict["head.fc.weight"]
+    net_dict["head.fc.bias"] = model_dict["head.fc.bias"]
 
     # print(ckpt)
     # print(ckpt['model'])
