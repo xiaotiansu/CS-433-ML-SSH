@@ -68,7 +68,7 @@ class IWildData():
         # if num_sample and num_sample < train_data.data.shape[0]:
         #     train_data.data = train_data.data[:num_sample]
         #     print("Truncate the training set to {:d} samples".format(num_sample))
-
+        print("here2")
         trloader = torch.utils.data.DataLoader(train_sets, batch_size=args.batch_size,
                                                shuffle=True, num_workers=args.workers,
                                                worker_init_fn=seed_worker, pin_memory=pin_memory, drop_last=True)

@@ -216,7 +216,7 @@ class GeneralWilds_Batched_Dataset(Dataset):
         self.targets = self.y_array
         self.domains = self.metadata_array[:, domain_idx]
         self.batch_size = batch_size
-
+        print("here1")
     def reset_batch(self):
         """Reset batch indices for each domain."""
         self.batch_indices, self.batches_left = {}, {}

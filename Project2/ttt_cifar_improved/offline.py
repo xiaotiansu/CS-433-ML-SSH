@@ -15,9 +15,8 @@ def offline(trloader, ext, scale):
     feat_stack = []
 
     with torch.no_grad():
+        print("here3")
         for batch_idx, (inputs, labels, meta) in enumerate(trloader):
-            print("feature size:")
-            print(inputs.shape)
             feat = ext(inputs.cuda())
             cov = covariance(feat)
             mu = feat.mean(dim=0)
