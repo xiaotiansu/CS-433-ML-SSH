@@ -13,7 +13,7 @@ if [ "$#" -lt 2 ]; then
 
 	# METHOD=ssl
 	# METHOD=align
-	METHOD=both
+	METHOD=ssl
 	NSAMPLE=100000
 else
 	CORRUPT=$1
@@ -26,9 +26,9 @@ fi
 SCALE_EXT=0.05
 SCALE_SSH=0.2
 LR=0.0005
-BS_SSL=4
-BS_ALIGN=4
-QS=4
+BS_SSL=8
+BS_ALIGN=8
+QS=8
 DIVERGENCE=all
 RESUME=save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_1
 
