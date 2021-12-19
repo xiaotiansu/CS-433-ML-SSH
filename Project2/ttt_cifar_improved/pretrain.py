@@ -137,8 +137,8 @@ def set_loader(opt):
 
     dataloader = IWildData(args)
 
-    trloader = dataloader.get_train_dataloader(args)
-    teloader = dataloader.get_test_dataloader(args)
+    _, trloader = dataloader.get_train_dataloader(args)
+    _, teloader = dataloader.get_test_dataloader(args)
 
     return trloader, teloader
 
@@ -225,20 +225,12 @@ def validate(val_loader, model, criterion, opt):
 
     with torch.no_grad():
         end = time.time()
-        for idx, data in enumerate(val_loader):
-            print(data)
-            print(len(data))
-            images, labels = util.unpack_data(data)
-
-            continue
-
-            # images = np.array(images)
-            # with torch.no_grad():
-            #     images = [t.numpy() for t in images]
-            # images = images.float().cuda()
-            # labels = labels.cuda()
-            # torch.tensor(images).to(device)
-            # torch.tensor(labels).to(device)
+        for idx, (images, labels, meta) in enumerate(val_loader):
+            # images, labels = util.unpack_data(data)
+            images = images.float().cuda()
+            labels = labels.cuda()
+            torch.tensor(images).to(device)
+            torch.tensor(labels).to(device)
             bsz = labels.shape[0]
 
             # forward
