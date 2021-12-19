@@ -227,8 +227,8 @@ def validate(val_loader, model, criterion, opt):
         end = time.time()
         for idx, data in enumerate(val_loader):
             images, labels = util.unpack_data(data)
-            # print(images)
-            # print(images[0])
+            print(labels)
+            print(labels[0])
 
             # images = np.array(images)
             # with torch.no_grad():
