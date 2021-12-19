@@ -23,8 +23,9 @@ def load_resnet50(net, head, ssh, classifier, args):
         if k in ["head.fc.weight", "head.fc.bias", "fc.weight", "fc.bias"]:
             print(k)
         if k[:4] == "head":
-            k = k.replace("head.", "")
-            head_dict[k] = v
+            # k = k.replace("head.", "")
+            # head_dict[k] = v
+            pass
         else:
             k = k.replace("encoder.module.", "ext.")
             # k = k.replace("downsample", "shortcut")
@@ -50,10 +51,10 @@ def load_resnet50(net, head, ssh, classifier, args):
     net.load_state_dict(net_dict)
 
     # net_dict = {}
-    # for k, v in state_dict.items():
-    #     if k[:4] == "head":
-    #         k = k.replace("head.", "")
-    #         head_dict[k] = v
+    for k, v in state_dict.items():
+        if k[:4] == "head":
+            k = k.replace("head.", "")
+            head_dict[k] = v
     #     else:
     #         k = k.replace("encoder.module.", "ext.")
     #         k = k.replace("downsample", "shortcut")
