@@ -107,3 +107,6 @@ class GaussianBlur(object):
         sigma = random.uniform(self.sigma[0], self.sigma[1])
         x = x.filter(ImageFilter.GaussianBlur(radius=sigma))
         return x
+
+def unpack_data(data, device):
+    return data[0].to(device), data[1].to(device)

@@ -11,6 +11,7 @@ import torch
 import torch.backends.cudnn as cudnn
 from torchvision import transforms, datasets
 
+import util
 from util import AverageMeter
 from util import adjust_learning_rate, warmup_learning_rate, accuracy
 from util import set_optimizer, save_model
@@ -222,8 +223,8 @@ def validate(val_loader, model, criterion, opt):
 
     with torch.no_grad():
         end = time.time()
-        for idx, x in enumerate(val_loader):
-            print(x)
+        for idx, data in enumerate(val_loader):
+            images, labels = util.unpack_data(data, "cuda")
             images = images.float().cuda()
             labels = labels.cuda()
             bsz = labels.shape[0]
