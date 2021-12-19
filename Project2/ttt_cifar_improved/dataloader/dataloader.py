@@ -71,7 +71,7 @@ class IWildData():
         print("here2")
         trloader = torch.utils.data.DataLoader(train_sets, batch_size=args.batch_size,
                                                shuffle=True, num_workers=args.workers,
-                                               worker_init_fn=seed_worker, pin_memory=pin_memory, drop_last=True)
+                                               worker_init_fn=seed_worker, pin_memory=pin_memory, drop_last=False)
         return train_data, trloader
 
     def get_test_dataloader(self, args, ttt=False, num_sample=None):
