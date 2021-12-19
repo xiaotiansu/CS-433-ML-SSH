@@ -280,11 +280,11 @@ for epoch in range(1, args.nepoch+1):
         if args.method == 'both' and is_both_activated:
 
             try:
-                inputs, _ = next(trloader_extra_iter)
+                inputs, _, _ = next(trloader_extra_iter)
             except StopIteration:
                 del trloader_extra_iter
                 trloader_extra_iter = iter(trloader_extra)
-                inputs, _ = next(trloader_extra_iter)
+                inputs, _, _ = next(trloader_extra_iter)
 
             if args.align_ext:
 
