@@ -27,15 +27,22 @@ def load_resnet50(net, head, ssh, classifier, args):
             head_dict[k] = v
         else:
             k = k.replace("encoder.module.", "ext.")
-            k = k.replace("downsample", "shortcut")
-            k = k.replace("head.fc.", "fc.")
+            # k = k.replace("downsample", "shortcut")
+            # k = k.replace("head.fc.", "fc.")
             net_dict[k] = v
 
     print("pretrained_dict:")
     for k, v in state_dict.items():
         if k in ["head.fc.weight", "head.fc.bias", "fc.weight", "fc.bias"]:
             print(k)
+    print("model_dict:")
+    for k, v in model_dict.items():
+        if k in ["head.fc.weight", "head.fc.bias", "fc.weight", "fc.bias"]:
+            print(k)
     pretrained_dict = {k:v for k, v in state_dict.items() if k in net_dict and "fc" not in k}
+    # pretrained_dict["head.fc.weight"] =
+    # pretrained_dict["head.fc.weight"] =
+
     # print(ckpt)
     # print(ckpt['model'])
     net_dict.update(pretrained_dict)
