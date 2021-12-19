@@ -68,7 +68,7 @@ def parse_option():
                         help='using synchronized batch normalization')
     parser.add_argument('--warm', action='store_true',
                         help='warm-up for large batch training')
-    parser.add_argument('--trial', type=str, default='0',
+    parser.add_argument('--trial', type=str, default='1',
                         help='id for recording multiple runs')
 
     # Additional

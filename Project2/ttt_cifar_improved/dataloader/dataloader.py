@@ -57,7 +57,7 @@ class IWildData():
             #     trset_raw = trset_raw[(args.level-1)*tesize: args.level*tesize]
             #     train_data.data = trset_raw
         else:
-            train_data = self.dataset.get_subset('train', frac = 0.01, transform=self.tr_transforms)
+            train_data = self.dataset.get_subset('train', frac = 0.1, transform=self.tr_transforms)
             train_sets = GeneralWilds_Batched_Dataset(train_data, args.batch_size, domain_idx=0)
 
         if not hasattr(args, 'workers') or args.workers < 2:
@@ -77,7 +77,7 @@ class IWildData():
     def get_test_dataloader(self, args, ttt=False, num_sample=None):
         if not hasattr(args, 'corruption') or args.corruption == 'original':
             print('Test on the original test set')
-            test_data = self.dataset.get_subset('test', frac = 0.01, transform=self.te_transforms)
+            test_data = self.dataset.get_subset('test', frac = 0.1, transform=self.te_transforms)
             teset = GeneralWilds_Batched_Dataset(test_data, args.batch_size, domain_idx=0)
 
         # elif args.corruption in common_corruptions:
