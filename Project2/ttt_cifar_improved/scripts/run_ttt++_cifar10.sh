@@ -66,5 +66,5 @@ python ttt++.py \
 	--align_ssh \
 	--align_ext \
 	--num_sample ${NSAMPLE} \
-	--ckpt 50
+	--ckpt 10
 	# --tsne
