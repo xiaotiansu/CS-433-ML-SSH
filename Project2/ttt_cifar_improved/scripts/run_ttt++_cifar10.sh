@@ -30,7 +30,7 @@ BS_SSL=4
 BS_ALIGN=4
 QS=4
 DIVERGENCE=all
-RESUME=save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_0
+RESUME=save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_1
 
 echo 'DATASET: '${DATASET}
 echo 'RESUME:  '${RESUME}
