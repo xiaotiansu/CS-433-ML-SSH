@@ -61,7 +61,8 @@ def load_resnet50(net, head, ssh, classifier, args):
     #         net_dict[k] = v
 
     net.load_state_dict(net_dict)
-    head.load_state_dict(head_dict)
+    #TODO make it a switch, will need to load to head in the future
+    # head.load_state_dict(head_dict)
 
     print('Loaded model trained jointly on Classification and SimCLR:', filename)
 
