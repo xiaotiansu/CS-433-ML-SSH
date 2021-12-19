@@ -33,12 +33,12 @@ def load_resnet50(net, head, ssh, classifier, args):
             net_dict[k] = v
 
     print("pretrained_dict:")
-    for k, v in state_dict.items():
-        if "weight" in k:
-            print(k)
-    for k, v in model_dict.items():
-        if "weight" in k:
-            print(k)
+    # for k, v in state_dict.items():
+    #     if "weight" in k:
+    #         print(k)
+    # for k, v in model_dict.items():
+    #     if "weight" in k:
+    #         print(k)
     pretrained_dict = {k:v for k, v in state_dict.items() if k in net_dict and "fc" not in k}
     net_dict["head.fc.weight"] = model_dict["head.fc.weight"]
     net_dict["head.fc.bias"] = model_dict["head.fc.bias"]
@@ -62,7 +62,12 @@ def load_resnet50(net, head, ssh, classifier, args):
     #         k = k.replace("downsample", "shortcut")
     #         k = k.replace("fc.", "head.fc.")
     #         net_dict[k] = v
-
+    head["head.fc.weight"] = model_dict["head.fc.weight"]
+    head["head.fc.bias"] = model_dict["head.fc.bias"]
+    head["0.weight"] = model_dict["head.fc.weight"]
+    head["0.bias"] = model_dict["head.fc.bias"]
+    head["2.weight"] = model_dict["head.fc.weight"]
+    head["2.bias"] = model_dict["head.fc.bias"]
     net.load_state_dict(net_dict)
     #TODO make it a switch, will need to load to head in the future
     head.load_state_dict(head_dict)
