@@ -195,6 +195,10 @@ def test(dataloader, model, sslabel=None):
     correct = torch.cat(correct).numpy()
     losses = torch.cat(losses).numpy()
     model.train()
+    print("1-correct.mean(), correct, losses")
+    print(1-correct.mean())
+    print(correct)
+    print(losses)
     return 1-correct.mean(), correct, losses
 
 
