@@ -67,8 +67,8 @@ def load_resnet50(net, head, ssh, classifier, args):
     head_dict["0.weight"] = model_dict["head.fc.weight"]
     head_dict["0.bias"] = model_dict["head.fc.bias"]
     head_dict["2.weight"] = model_dict["head.fc.weight"]
-    head["2.bias"] = model_dict["head.fc.bias"]
-    head_dict.load_state_dict(net_dict)
+    head_dict["2.bias"] = model_dict["head.fc.bias"]
+    net.load_state_dict(net_dict)
     #TODO make it a switch, will need to load to head in the future
     head.load_state_dict(head_dict)
 
