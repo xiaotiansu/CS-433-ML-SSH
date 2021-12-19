@@ -2,7 +2,7 @@
 
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
-DATASET=cifar10
+DATASET=iwildcame
 
 # ===================================
 
