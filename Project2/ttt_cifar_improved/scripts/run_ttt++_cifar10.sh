@@ -26,9 +26,9 @@ fi
 SCALE_EXT=0.05
 SCALE_SSH=0.2
 LR=0.01
-BS_SSL=64
-BS_ALIGN=64
-QS=64
+BS_SSL=4
+BS_ALIGN=4
+QS=4
 DIVERGENCE=all
 RESUME=save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_0
 
@@ -53,7 +53,7 @@ python ttt++.py \
 	--outf results/${DATASET}_ttt_simclr_joint_resnet50 \
 	--corruption ${CORRUPT} \
 	--level ${LEVEL} \
-	--workers 36 \
+	--workers 4 \
 	--fix_ssh \
 	--batch_size ${BS_SSL} \
 	--batch_size_align ${BS_ALIGN} \
