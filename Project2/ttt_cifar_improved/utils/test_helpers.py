@@ -21,7 +21,7 @@ def load_resnet50(net, head, ssh, classifier, args):
             k = k.replace("head.", "")
             head_dict[k] = v
         else:
-            k = k.replace("encoder.", "ext.module.")
+            k = k.replace("encoder.module.", "ext.")
             k = k.replace("fc.", "head.fc.")
             net_dict[k] = v
 
@@ -77,7 +77,7 @@ def build_resnet50(args):
     from models.SSHead import ExtractorHead
 
     print('Building ResNet50...')
-    classes = 182
+    classes = 1000
 
     classifier = LinearClassifier(num_classes=classes).cuda()
     ssh = SupConResNet().cuda()
