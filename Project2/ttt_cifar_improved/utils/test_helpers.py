@@ -220,9 +220,9 @@ def test(dataloader, model, sslabel=None):
             _, predicted = outputs.max(1)
             # acc1, acc5 = accuracy(outputs, labels, topk=(1, 5))
             #
-            print("predicted/labels sample")
-            print(predicted[:10])
-            print(labels[:10])
+            # print("predicted/labels sample")
+            # print(predicted[:10])
+            # print(labels[:10])
             correct.append(predicted.eq(labels).cpu())
     correct = torch.cat(correct).numpy()
     losses = torch.cat(losses).numpy()
