@@ -62,7 +62,7 @@ def load_resnet50(net, head, ssh, classifier, args):
 
     net.load_state_dict(net_dict)
     #TODO make it a switch, will need to load to head in the future
-    # head.load_state_dict(head_dict)
+    head.load_state_dict(head_dict)
 
     print('Loaded model trained jointly on Classification and SimCLR:', filename)
 
@@ -176,6 +176,21 @@ def build_model(args):
         ssh = torch.nn.DataParallel(ssh)
     return net, ext, head, ssh
 
+def accuracy(output, target, topk=(1,)):
+    """Computes the accuracy over the k top predictions for the specified values of k"""
+    with torch.no_grad():
+        maxk = max(topk)
+        batch_size = target.size(0)
+
+        _, pred = output.topk(maxk, 1, True, True)
+        pred = pred.t()
+        correct = pred.eq(target.view(1, -1).expand_as(pred))
+
+        res = []
+        for k in topk:
+            correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
+            res.append(correct_k.mul_(100.0 / batch_size))
+        return res
 
 def test(dataloader, model, sslabel=None):
     criterion = nn.CrossEntropyLoss(reduction='none').cuda()
@@ -191,9 +206,11 @@ def test(dataloader, model, sslabel=None):
             loss = criterion(outputs, labels)
             losses.append(loss.cpu())
             _, predicted = outputs.max(1)
-            print("outputs and predicted")
-            print(outputs)
-            print(predicted)
+            # acc1, acc5 = accuracy(outputs, labels, topk=(1, 5))
+            #
+            # print("outputs and predicted")
+            # print(predicted)
+            # print(labels)
             correct.append(predicted.eq(labels).cpu())
     correct = torch.cat(correct).numpy()
     losses = torch.cat(losses).numpy()

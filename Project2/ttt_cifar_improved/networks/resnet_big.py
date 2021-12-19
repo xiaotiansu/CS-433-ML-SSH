@@ -245,7 +245,7 @@ class OfficialResNet(nn.Module):
     def __init__(self, name='resnet50', num_classes=10):
         super(OfficialResNet, self).__init__()
         self.encoder = models.__dict__[name](pretrained=True)
-        self.fc = self.encoder.fc
+        self.fc = nn.Linear(2048, num_classes)
         self.encoder.fc = nn.Identity()
 
         # set_parameter_requires_grad(self.encoder, True)
