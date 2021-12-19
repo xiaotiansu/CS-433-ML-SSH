@@ -69,7 +69,7 @@ parser.add_argument('--align_ext', action='store_true')
 parser.add_argument('--align_ssh', action='store_true')
 ########################################################################
 parser.add_argument('--model', default='resnet50', help='resnet50')
-parser.add_argument('--save_every', default=100, type=int)
+parser.add_argument('--save_every', default=20, type=int)
 ########################################################################
 parser.add_argument('--tsne', action='store_true')
 ########################################################################
@@ -280,6 +280,7 @@ for epoch in range(1, args.nepoch+1):
         if args.method == 'both' and is_both_activated:
 
             try:
+                inputs, _, _ = next(trloader_extra_iter)
                 inputs, _, _ = next(trloader_extra_iter)
             except StopIteration:
                 del trloader_extra_iter

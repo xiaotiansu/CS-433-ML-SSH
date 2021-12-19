@@ -128,7 +128,7 @@ def build_resnet50(args):
     classes = 186
 
     classifier = LinearClassifier(num_classes=classes).cuda()
-    ssh = SupConResNet().cuda()
+    ssh = SupConResNet(head='linear').cuda()
     head = ssh.head
     ext = ssh.encoder
     net = ExtractorHead(ext, classifier).cuda()
@@ -227,10 +227,10 @@ def test(dataloader, model, sslabel=None):
     correct = torch.cat(correct).numpy()
     losses = torch.cat(losses).numpy()
     model.train()
-    print("1-correct.mean(), correct, losses")
-    print(1-correct.mean())
-    print(correct)
-    print(losses)
+    # print("1-correct.mean(), correct, losses")
+    # print(1-correct.mean())
+    # print(correct)
+    # print(losses)
     return 1-correct.mean(), correct, losses
 
 
