@@ -133,20 +133,64 @@ def prepare_mix_corruption(args, num_mix, foldername):
 def prepare_test_data(args, ttt=False, num_sample=None):
 
     tr_transforms, te_transforms, simclr_transforms = prepare_transforms(args.dataset)
-    tesize = 10000
-    if not hasattr(args, 'corruption') or args.corruption == 'original':
-        print('Test on the original test set')
-        teset = torchvision.datasets.CIFAR100(root=args.dataroot,
-                                            train=False, download=True, transform=te_transforms)
-    elif args.corruption in common_corruptions:
-        print('Test on %s level %d' %(args.corruption, args.level))
-        teset_raw = np.load(args.dataroot + '/CIFAR-100-C/%s.npy' %(args.corruption))
-        teset_raw = teset_raw[(args.level-1)*tesize: args.level*tesize]
-        teset = torchvision.datasets.CIFAR100(root=args.dataroot,
-                                            train=False, download=True, transform=te_transforms)
-        teset.data = teset_raw
+
+    if args.dataset == 'cifar10':
+
+        tesize = 10000
+        if not hasattr(args, 'corruption') or args.corruption == 'original':
+            print('Test on the original test set')
+            teset = torchvision.datasets.CIFAR10(root=args.dataroot,
+                                                train=False, download=True, transform=te_transforms)
+        elif args.corruption in common_corruptions:
+            print('Test on %s level %d' %(args.corruption, args.level))
+            teset_raw = np.load(args.dataroot + '/CIFAR-10-C/%s.npy' %(args.corruption))
+            teset_raw = teset_raw[(args.level-1)*tesize: args.level*tesize]
+            teset = torchvision.datasets.CIFAR10(root=args.dataroot,
+                                                train=False, download=True, transform=te_transforms)
+            teset.data = teset_raw
+
+        elif args.corruption == 'cifar_new':
+            from utils.cifar_new import CIFAR_New
+            print('Test on CIFAR-10.1')
+            teset = CIFAR_New(root=args.dataroot + '/CIFAR-10.1/datasets/', transform=te_transforms)
+            permute = False
+
+        elif args.corruption == 'cifar_mix10':
+            print('Test on mix on 10 noises on level %d' %(args.level))
+            teset_mix_raw = prepare_mix_corruption(args, 10, args.dataroot + '/CIFAR-10-C')
+            teset = torchvision.datasets.CIFAR10(root=args.dataroot,
+                                                train=False, download=True, transform=te_transforms)
+            teset.data = teset_mix_raw
+
+        elif args.corruption == 'cifar_mix5':
+            print('Test on mix on 5 noises on level %d' %(args.level))
+            teset_mix_raw = prepare_mix_corruption(args, 5, args.dataroot + '/CIFAR-10-C')
+            teset = torchvision.datasets.CIFAR10(root=args.dataroot,
+                                                train=False, download=True, transform=te_transforms)
+            teset.data = teset_mix_raw
+
+        else:
+            raise Exception('Corruption not found!')
+
+    elif args.dataset == 'cifar100':
+     
+        tesize = 10000
+        if not hasattr(args, 'corruption') or args.corruption == 'original':
+            print('Test on the original test set')
+            teset = torchvision.datasets.CIFAR100(root=args.dataroot,
+                                                train=False, download=True, transform=te_transforms)
+        elif args.corruption in common_corruptions:
+            print('Test on %s level %d' %(args.corruption, args.level))
+            teset_raw = np.load(args.dataroot + '/CIFAR-100-C/%s.npy' %(args.corruption))
+            teset_raw = teset_raw[(args.level-1)*tesize: args.level*tesize]
+            teset = torchvision.datasets.CIFAR100(root=args.dataroot,
+                                                train=False, download=True, transform=te_transforms)
+            teset.data = teset_raw
+        else:
+            raise Exception('Corruption not found!')
+
     else:
-        raise Exception('Corruption not found!')
+        raise Exception('Dataset not found!')
 
     if not hasattr(args, 'workers') or args.workers < 2:
         pin_memory = False
@@ -173,22 +217,58 @@ def prepare_train_data(args, num_sample=None):
     print('Preparing data...')
     
     tr_transforms, te_transforms, simclr_transforms = prepare_transforms(args.dataset)
-    if hasattr(args, 'ssl') and args.ssl == 'contrastive':
-        trset = torchvision.datasets.CIFAR100(root=args.dataroot,
-                                     train=True, download=True,
-                                     transform=TwoCropTransform(simclr_transforms))
-        if hasattr(args, 'corruption') and args.corruption in common_corruptions:
-            print('Contrastive on %s level %d' %(args.corruption, args.level))
-            tesize = 10000
-            trset_raw = np.load(args.dataroot + '/CIFAR-100-C/%s.npy' %(args.corruption))
-            trset_raw = trset_raw[(args.level-1)*tesize: args.level*tesize]
-            trset.data = trset_raw
+
+    if args.dataset == 'cifar10':
+
+        if hasattr(args, 'ssl') and args.ssl == 'contrastive':
+            trset = torchvision.datasets.CIFAR10(root=args.dataroot,
+                                         train=True, download=True,
+                                         transform=TwoCropTransform(simclr_transforms))
+            if hasattr(args, 'corruption') and args.corruption in common_corruptions:
+                print('Contrastive on %s level %d' %(args.corruption, args.level))
+                tesize = 10000
+                trset_raw = np.load(args.dataroot + '/CIFAR-10-C/%s.npy' %(args.corruption))
+                trset_raw = trset_raw[(args.level-1)*tesize: args.level*tesize]   
+                trset.data = trset_raw
+            elif hasattr(args, 'corruption') and args.corruption == 'cifar_new':
+                from utils.cifar_new import CIFAR_New
+                print('Contrastive on CIFAR-10.1')
+                trset_raw = CIFAR_New(root=args.dataroot + '/CIFAR-10.1/datasets/', transform=te_transforms)
+                trset.data = trset_raw.data
+            elif  hasattr(args, 'corruption') and args.corruption == 'cifar_mix10':
+                print('Test on mix on 10 noises on level %d' %(args.level))
+                trset_mix_raw = prepare_mix_corruption(args, 10, args.dataroot + '/CIFAR-10-C')
+                trset.data = trset_mix_raw
+            elif  hasattr(args, 'corruption') and args.corruption == 'cifar_mix5':
+                print('Test on mix on 5 noises on level %d' %(args.level))
+                trset_mix_raw = prepare_mix_corruption(args, 5, args.dataroot + '/CIFAR-10-C')
+                trset.data = trset_mix_raw
+            else:
+                print('Contrastive on ciar10 training set')
         else:
-            print('Contrastive on ciar10 training set')
-    else:
-        trset = torchvision.datasets.CIFAR100(root=args.dataroot,
+            trset = torchvision.datasets.CIFAR10(root=args.dataroot,
                                         train=True, download=True, transform=tr_transforms)
-        print('Cifar100 training set')
+            print('Cifar10 training set')
+
+    elif args.dataset == 'cifar100':
+        if hasattr(args, 'ssl') and args.ssl == 'contrastive':
+            trset = torchvision.datasets.CIFAR100(root=args.dataroot,
+                                         train=True, download=True,
+                                         transform=TwoCropTransform(simclr_transforms))            
+            if hasattr(args, 'corruption') and args.corruption in common_corruptions:
+                print('Contrastive on %s level %d' %(args.corruption, args.level))
+                tesize = 10000
+                trset_raw = np.load(args.dataroot + '/CIFAR-100-C/%s.npy' %(args.corruption))
+                trset_raw = trset_raw[(args.level-1)*tesize: args.level*tesize]   
+                trset.data = trset_raw
+            else:
+                print('Contrastive on ciar10 training set')
+        else:
+            trset = torchvision.datasets.CIFAR100(root=args.dataroot,
+                                            train=True, download=True, transform=tr_transforms)
+            print('Cifar100 training set')
+    else:
+        raise Exception('Dataset not found!')
 
     if not hasattr(args, 'workers') or args.workers < 2:
         pin_memory = False
