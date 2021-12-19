@@ -17,6 +17,10 @@ def load_resnet50(net, head, ssh, classifier, args):
     model_dict = net.state_dict()
     net_dict = {}
     head_dict = {}
+    print("model_dict:")
+    for k, v in model_dict:
+        print(k)
+
     for k, v in model_dict.items():
         if k[:4] == "head":
             k = k.replace("head.", "")
@@ -28,9 +32,12 @@ def load_resnet50(net, head, ssh, classifier, args):
             net_dict[k] = v
 
     pretrained_dict = {k:v for k, v in ckpt.items() if k in net_dict and "fc" not in k}
+    print("pretrained_dict:")
+    for k, v in pretrained_dict:
+        print(k)
     net_dict.update(pretrained_dict)
     net.load_state_dict(net_dict)
-    
+
     # net_dict = {}
     # for k, v in state_dict.items():
     #     if k[:4] == "head":
@@ -94,7 +101,7 @@ def build_resnet50(args):
     from models.SSHead import ExtractorHead
 
     print('Building ResNet50...')
-    classes = 1000
+    classes = 186
 
     classifier = LinearClassifier(num_classes=classes).cuda()
     ssh = SupConResNet().cuda()
