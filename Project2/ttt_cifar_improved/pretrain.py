@@ -229,6 +229,7 @@ def validate(val_loader, model, criterion, opt):
             images, labels = util.unpack_data(data)
             print(data)
             print(len(data))
+            continue
 
             # images = np.array(images)
             # with torch.no_grad():
