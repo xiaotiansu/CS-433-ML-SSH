@@ -30,7 +30,7 @@ from online import FeatureQueue
 # ----------------------------------
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', default='cifar10')
+parser.add_argument('--dataset', default='iwildcam')
 parser.add_argument('--dataroot', default=None)
 parser.add_argument('--shared', default=None)
 ########################################################################

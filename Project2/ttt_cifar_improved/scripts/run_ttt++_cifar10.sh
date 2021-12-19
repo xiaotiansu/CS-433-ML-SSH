@@ -2,7 +2,7 @@
 
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
-DATASET=iwildcame
+DATASET=iwildcam
 
 # ===================================
 
@@ -28,7 +28,7 @@ SCALE_SSH=0.2
 LR=0.01
 BS_SSL=64
 BS_ALIGN=128
-QS=256
+QS=128
 DIVERGENCE=all
 RESUME=save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_0
 
