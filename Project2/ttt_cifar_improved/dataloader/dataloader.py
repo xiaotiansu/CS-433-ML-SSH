@@ -3,6 +3,7 @@ import os
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
+from torchvision import transforms
 from wilds.datasets.iwildcam_dataset import IWildCamDataset
 
 from utils.prepare_dataset import prepare_transforms, TwoCropTransform, common_corruptions, seed_worker
@@ -15,11 +16,38 @@ tesize = 10000
 class IWildData():
     def __init__(self, args):
         self.dataset = IWildCamDataset(root_dir=os.path.join(args.dataroot, 'wilds'), download=True)
-        self.tr_transforms, self.te_transforms, self.simclr_transforms = prepare_transforms(args.dataset)
+        # self.tr_transforms, self.te_transforms, self.simclr_transforms = prepare_transforms(args.dataset)
+        self.tr_transforms = transforms.Compose([
+            transforms.Resize((224, 224)),
+            # transforms.RandomResizedCrop(size=32, scale=(0.2, 1.)),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406],
+                                 [0.229, 0.224, 0.225])
+        ])
+
+        self.te_transforms = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406],
+                                 [0.229, 0.224, 0.225])
+        ])
+
+        self.simclr_transforms = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomApply([
+                transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
+            ], p=0.8),
+            transforms.RandomGrayscale(p=0.2),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406],
+                                 [0.229, 0.224, 0.225])
+        ])
 
     def get_train_dataloader(self, args, num_sample=None):
         if hasattr(args, 'ssl') and args.ssl == 'contrastive':
-            train_data = self.dataset.get_subset('train', frac = 0.01, transform=TwoCropTransform(self.tr_transforms))
+            train_data = self.dataset.get_subset('train', frac = 0.01, transform=TwoCropTransform(self.simclr_transforms))
             # if hasattr(args, 'corruption') and args.corruption in common_corruptions:
             #     print('Contrastive on %s level %d' %(args.corruption, args.level))
             #     tesize = 10000
