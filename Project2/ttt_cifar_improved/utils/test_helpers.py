@@ -31,7 +31,8 @@ def load_resnet50(net, head, ssh, classifier, args):
 
     pretrained_dict = {k:v for k, v in ckpt.items() if k in net_dict and "fc" not in k}
     print("pretrained_dict:")
-    print(pretrained_dict)
+    print(ckpt)
+    print(ckpt['model'])
     net_dict.update(pretrained_dict)
     net.load_state_dict(net_dict)
 
