@@ -14,17 +14,33 @@ def load_resnet50(net, head, ssh, classifier, args):
     ckpt = torch.load(filename)
     state_dict = ckpt['model']
 
+    model_dict = net.state_dict()
     net_dict = {}
     head_dict = {}
-    for k, v in state_dict.items():
+    for k, v in model_dict.items():
         if k[:4] == "head":
             k = k.replace("head.", "")
             head_dict[k] = v
         else:
-            k = k.replace("encoder.module.", "ext.")
+            k = k.replace("ext.", "encoder.module.")
             k = k.replace("downsample", "shortcut")
-            k = k.replace("fc.", "head.fc.")
+            k = k.replace("head.fc.", "fc.")
             net_dict[k] = v
+
+    pretrained_dict = {k:v for k, v in ckpt.items() if k in net_dict and "fc" not in k}
+    net_dict.update(pretrained_dict)
+    net.load_state_dict(net_dict)
+    
+    # net_dict = {}
+    # for k, v in state_dict.items():
+    #     if k[:4] == "head":
+    #         k = k.replace("head.", "")
+    #         head_dict[k] = v
+    #     else:
+    #         k = k.replace("encoder.module.", "ext.")
+    #         k = k.replace("downsample", "shortcut")
+    #         k = k.replace("fc.", "head.fc.")
+    #         net_dict[k] = v
 
     net.load_state_dict(net_dict)
     head.load_state_dict(head_dict)
