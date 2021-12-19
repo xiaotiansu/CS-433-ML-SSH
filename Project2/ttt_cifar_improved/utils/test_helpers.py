@@ -35,10 +35,7 @@ def load_resnet50(net, head, ssh, classifier, args):
     for k, v in state_dict.items():
         if k in ["head.fc.weight", "head.fc.bias", "fc.weight", "fc.bias"]:
             print(k)
-    print("model_dict:")
-    for k, v in model_dict.items():
-        if k in ["head.fc.weight", "head.fc.bias", "fc.weight", "fc.bias"]:
-            print(k)
+
     pretrained_dict = {k:v for k, v in state_dict.items() if k in net_dict and "fc" not in k}
     # pretrained_dict["head.fc.weight"] =
     # pretrained_dict["head.fc.weight"] =
@@ -46,6 +43,10 @@ def load_resnet50(net, head, ssh, classifier, args):
     # print(ckpt)
     # print(ckpt['model'])
     net_dict.update(pretrained_dict)
+    print("net_dict:")
+    for k, v in net_dict.items():
+        if k in ["head.fc.weight", "head.fc.bias", "fc.weight", "fc.bias"]:
+            print(k)
     net.load_state_dict(net_dict)
 
     # net_dict = {}
