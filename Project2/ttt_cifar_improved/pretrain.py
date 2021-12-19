@@ -25,6 +25,7 @@ try:
 except ImportError:
     pass
 
+device = "cuda"
 
 def parse_option():
     parser = argparse.ArgumentParser('argument for training')
@@ -225,8 +226,10 @@ def validate(val_loader, model, criterion, opt):
         end = time.time()
         for idx, data in enumerate(val_loader):
             images, labels = util.unpack_data(data)
-            images = images.float().cuda()
-            labels = labels.cuda()
+            # images = images.float().cuda()
+            # labels = labels.cuda()
+            torch.tensor(images).to(device)
+            torch.tensor(labels).to(device)
             bsz = labels.shape[0]
 
             # forward
