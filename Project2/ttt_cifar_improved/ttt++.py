@@ -122,6 +122,7 @@ if args.method == 'both':
 
 print('Resuming from %s...' %(args.resume))
 
+net= torch.nn.DataParallel(net)
 load_resnet50(net, head, ssh, classifier, args)
 
 if torch.cuda.device_count() > 1:
