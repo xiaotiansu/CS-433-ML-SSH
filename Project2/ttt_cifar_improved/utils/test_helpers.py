@@ -128,7 +128,7 @@ def build_resnet50(args):
     classes = 186
 
     classifier = LinearClassifier(num_classes=classes).cuda()
-    ssh = SupConResNet(head='linear').cuda()
+    ssh = SupConResNet().cuda()
     head = ssh.head
     ext = ssh.encoder
     net = ExtractorHead(ext, classifier).cuda()
