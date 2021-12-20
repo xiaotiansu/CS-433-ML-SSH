@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+from dataloader.dataloader import IWildData
 from utils.misc import *
 from utils.test_helpers import *
 from utils.prepare_dataset import *
@@ -29,21 +30,21 @@ from online import FeatureQueue
 # ----------------------------------
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', default='cifar10')
+parser.add_argument('--dataset', default='iwildcam')
 parser.add_argument('--dataroot', default=None)
 parser.add_argument('--shared', default=None)
 ########################################################################
 parser.add_argument('--depth', default=26, type=int)
 parser.add_argument('--width', default=1, type=int)
-parser.add_argument('--batch_size', default=128, type=int)
-parser.add_argument('--batch_size_align', default=512, type=int)
+parser.add_argument('--batch_size', default=64, type=int)
+parser.add_argument('--batch_size_align', default=256, type=int)
 parser.add_argument('--queue_size', default=256, type=int)
 parser.add_argument('--group_norm', default=0, type=int)
 parser.add_argument('--workers', default=0, type=int)
 parser.add_argument('--num_sample', default=1000000, type=int)
 ########################################################################
 parser.add_argument('--lr', default=0.001, type=float)
-parser.add_argument('--nepoch', default=100, type=int, help='maximum number of epoch for ttt')
+parser.add_argument('--nepoch', default=50, type=int, help='maximum number of epoch for ttt')
 parser.add_argument('--bnepoch', default=2, type=int, help='first few epochs to update bn stat')
 parser.add_argument('--delayepoch', default=0, type=int)
 parser.add_argument('--stopepoch', default=25, type=int)
@@ -68,7 +69,7 @@ parser.add_argument('--align_ext', action='store_true')
 parser.add_argument('--align_ssh', action='store_true')
 ########################################################################
 parser.add_argument('--model', default='resnet50', help='resnet50')
-parser.add_argument('--save_every', default=100, type=int)
+parser.add_argument('--save_every', default=20, type=int)
 ########################################################################
 parser.add_argument('--tsne', action='store_true')
 ########################################################################
@@ -91,8 +92,10 @@ cudnn.benchmark = True
 
 net, ext, head, ssh, classifier = build_resnet50(args)
 
-_, teloader = prepare_test_data(args)
+dataloader = IWildData(args)
 
+# _, teloader = prepare_test_data(args)
+_, teloader = dataloader.get_test_dataloader(args)
 # -------------------------------
 
 args.batch_size = min(args.batch_size, args.num_sample)
@@ -103,23 +106,26 @@ args_align.ssl = None
 args_align.batch_size = args.batch_size_align
 
 if args.method == 'align':
-    _, trloader = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
+    # _, trloader = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
+    _, trloader = dataloader.get_test_dataloader(args_align, ttt=True, num_sample=args.num_sample)
+
 else:
-    _, trloader = prepare_train_data(args, args.num_sample)
+    # _, trloader = prepare_train_data(args, args.num_sample)
+    _, trloader = dataloader.get_train_dataloader(args, num_sample=args.num_sample)
 
 if args.method == 'both':
-    _, trloader_extra = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
+    # _, trloader_extra = prepare_test_data(args_align, ttt=True, num_sample=args.num_sample)
+    _, trloader_extra = dataloader.get_test_dataloader(args_align, ttt=True, num_sample=args.num_sample)
     trloader_extra_iter = iter(trloader_extra)
 
 # -------------------------------
 
 print('Resuming from %s...' %(args.resume))
 
+# net= torch.nn.DataParallel(net)
 load_resnet50(net, head, ssh, classifier, args)
 
 if torch.cuda.device_count() > 1:
-    # ssh = torch.nn.DataParallel(ssh)
-    # net = torch.nn.DataParallel(net)
     ext = torch.nn.DataParallel(ext)
 
 # ----------- Offline Feature Summarization ------------
@@ -131,7 +137,8 @@ if args.method in ['align', 'both']:
         # reset batch size by queue size
         args_align.batch_size = args.queue_size
 
-    _, offlineloader = prepare_train_data(args_align)
+    # _, offlineloader = prepare_train_data(args_align)
+    _, offlineloader = dataloader.get_train_dataloader(args_align)
 
     MMD_SCALE_FACTOR = 0.5
     if args.align_ext:
@@ -159,7 +166,8 @@ if args.method in ['align', 'both']:
 if args.tsne:
     args_src = copy.deepcopy(args)
     args_src.corruption = 'original'
-    _, srcloader = prepare_test_data(args_src)
+    # _, srcloader = prepare_test_data(args_src)
+    _, srcloader = dataloader.get_test_dataloader(args_src)
     feat_src, label_src, tsne_src = visu_feat(ext, srcloader, os.path.join(args.outf, 'original.pdf'))
     feat_tar, label_tar, tsne_tar = visu_feat(ext, teloader, os.path.join(args.outf, args.corruption + '_test_class.pdf'))
     calculate_distance(feat_src, label_src, tsne_src, feat_tar, label_tar, tsne_tar)
@@ -172,6 +180,7 @@ print('Running...')
 print('Error (%)\t\ttest')
 
 err_cls = test(teloader, net)[0]
+torch.cuda.empty_cache()
 print(('Epoch %d/%d:' %(0, args.nepoch)).ljust(24) +
             '%.2f\t\t' %(err_cls*100))
 
@@ -190,8 +199,6 @@ criterion = SupConLoss(temperature=args.temperature).cuda()
 
 # ----------- Improved Test-time Training ------------
 
-# losses = AverageMeter('Loss', ':.4e')
-
 is_both_activated = False
 
 for epoch in range(1, args.nepoch+1):
@@ -206,8 +213,8 @@ for epoch in range(1, args.nepoch+1):
         head.train()
     ext.train()
 
-    for batch_idx, (inputs, labels) in enumerate(trloader):
-
+    for batch_idx, (inputs, labels, meta) in enumerate(trloader):
+        torch.cuda.empty_cache()
         optimizer.zero_grad()
 
         if args.method in ['ssl', 'both']:
@@ -274,11 +281,11 @@ for epoch in range(1, args.nepoch+1):
         if args.method == 'both' and is_both_activated:
 
             try:
-                inputs, _ = next(trloader_extra_iter)
+                inputs, _, _ = next(trloader_extra_iter)
             except StopIteration:
                 del trloader_extra_iter
                 trloader_extra_iter = iter(trloader_extra)
-                inputs, _ = next(trloader_extra_iter)
+                inputs, _, _ = next(trloader_extra_iter)
 
             if args.align_ext:
 
@@ -330,7 +337,6 @@ for epoch in range(1, args.nepoch+1):
 
     err_cls = test(teloader, net)[0]
     all_err_cls.append(err_cls)
-    # all_err_ssh.append(loss.item())
 
     toc = time.time()
     print(('Epoch %d/%d (%.0fs):' %(epoch, args.nepoch, toc-tic)).ljust(24) +

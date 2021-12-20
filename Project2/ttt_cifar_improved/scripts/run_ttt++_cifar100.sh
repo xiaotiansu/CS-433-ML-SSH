@@ -2,40 +2,33 @@
 
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
-DATADIR=/data/cifar
-DATASET=cifar10
+DATASET=cifar100
 
 # ===================================
 
 LEVEL=5
 
 if [ "$#" -lt 2 ]; then
-	CORRUPT=snow
-	# CORRUPT=cifar_new
+	CORRUPT=original
 
 	# METHOD=ssl
-	METHOD=align
-	# METHOD=both
-	# COEF=1.0
-	# NSAMPLE=100000
-	BS_ALIGN=32
-	QS=128
+	# METHOD=align
+	METHOD=both
+	BS_ALIGN=256
+	QS=2048
 else
 	CORRUPT=$1
 	METHOD=$2
-	# COEF=$3
 	BS_ALIGN=$3
 	QS=$4
 fi
 
 # ===================================
 
-SCALE_EXT=0.05
-SCALE_SSH=0.2
-LR=0.01
+SCALE_EXT=5.0
+SCALE_SSH=20.0
+LR=0.0001
 BS_SSL=256
-# BS_ALIGN=16
-# BS_ALIGN=1536
 DIVERGENCE=all
 
 COEF=1.0
@@ -62,6 +55,7 @@ echo 'COEF:' ${COEF}
 printf '\n---------------------\n\n'
 
 python ttt++.py \
+    --dataset ${DATASET} \
 	--dataroot ${DATADIR} \
 	--resume results/${DATASET}_joint_resnet50 \
 	--outf results/${DATASET}_ttt_simclr_joint_resnet50 \

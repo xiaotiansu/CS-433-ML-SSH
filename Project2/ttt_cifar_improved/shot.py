@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+from dataloader.dataloader import IWildData
 from utils.misc import *
 from utils.test_helpers import *
 from utils.prepare_dataset import *
@@ -37,7 +38,7 @@ parser.add_argument('--width', default=1, type=int)
 parser.add_argument('--batch_size', default=128, type=int)
 parser.add_argument('--group_norm', default=0, type=int)
 parser.add_argument('--workers', default=0, type=int)
-parser.add_argument('--num_sample', default=1000000, type=int)
+parser.add_argument('--num_sample', default=1000, type=int)
 ########################################################################
 parser.add_argument('--lr', default=0.001, type=float)
 parser.add_argument('--nepoch', default=500, type=int, help='maximum number of epoch for ttt')
@@ -83,14 +84,18 @@ cudnn.benchmark = True
 # -------------------------------
 
 net, ext, head, ssh, classifier = build_resnet50(args)
+dataloader = IWildData(args)
 
-_, teloader = prepare_test_data(args)
+# _, teloader = prepare_test_data(args)
+_, teloader = dataloader.get_test_dataloader(args)
 
 # -------------------------------
 
 args.batch_size = min(args.batch_size, args.num_sample)
-_, trloader = prepare_test_data(args, num_sample=args.num_sample)
+# _, trloader = prepare_test_data(args, num_sample=args.num_sample)
+_, trloader = dataloader.get_test_dataloader(args,num_sample=args.num_sample)
 
+# -
 # -------------------------------
 
 print('Resuming from %s...' %(args.resume))
@@ -109,7 +114,9 @@ if torch.cuda.device_count() > 1:
 if args.tsne:
     args_src = copy.deepcopy(args)
     args_src.corruption = 'original'
-    _, srcloader = prepare_test_data(args_src)
+    # _, srcloader = prepare_test_data(args_src)
+    _, srcloader = dataloader.get_test_dataloader(args_src)
+
     feat_src, label_src = visu_feat(ext, srcloader, os.path.join(args.outf, 'original.pdf'))
 
     feat_tar, label_tar = visu_feat(ext, teloader, os.path.join(args.outf, args.corruption + '_test_class.pdf'))

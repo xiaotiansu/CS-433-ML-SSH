@@ -131,8 +131,10 @@ def prepare_mix_corruption(args, num_mix, foldername):
     return teset_mix_raw
 
 def prepare_test_data(args, ttt=False, num_sample=None):
+
+    tr_transforms, te_transforms, simclr_transforms = prepare_transforms(args.dataset)
+
     if args.dataset == 'cifar10':
-        tr_transforms, te_transforms, simclr_transforms = prepare_transforms(args.dataset)
 
         tesize = 10000
         if not hasattr(args, 'corruption') or args.corruption == 'original':
@@ -213,8 +215,10 @@ def prepare_test_data(args, ttt=False, num_sample=None):
 
 def prepare_train_data(args, num_sample=None):
     print('Preparing data...')
+    
+    tr_transforms, te_transforms, simclr_transforms = prepare_transforms(args.dataset)
+
     if args.dataset == 'cifar10':
-        tr_transforms, te_transforms, simclr_transforms = prepare_transforms(args.dataset)
 
         if hasattr(args, 'ssl') and args.ssl == 'contrastive':
             trset = torchvision.datasets.CIFAR10(root=args.dataroot,

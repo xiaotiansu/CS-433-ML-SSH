@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from models.SSHead import ExtractorHead
 from utils.misc import *
 from utils.rotation import rotate_batch
 
@@ -15,19 +14,67 @@ def load_resnet50(net, head, ssh, classifier, args):
     ckpt = torch.load(filename)
     state_dict = ckpt['model']
 
+    model_dict = net.state_dict()
     net_dict = {}
     head_dict = {}
+    print("model_dict:")
+    # print(model_dict)
+    for k, v in model_dict.items():
+        if k in ["head.fc.weight", "head.fc.bias", "fc.weight", "fc.bias"]:
+            print(k)
+        if k[:4] == "head":
+            # k = k.replace("head.", "")
+            # head_dict[k] = v
+            pass
+        else:
+            k = k.replace("encoder.module.", "ext.")
+            # k = k.replace("downsample", "shortcut")
+            # k = k.replace("head.fc.", "fc.")
+            net_dict[k] = v
+
+    print("pretrained_dict:")
+    # for k, v in state_dict.items():
+    #     if "weight" in k:
+    #         print(k)
+    # for k, v in model_dict.items():
+    #     if "weight" in k:
+    #         print(k)
+    pretrained_dict = {k:v for k, v in state_dict.items() if k in net_dict and "fc" not in k}
+    net_dict["head.fc.weight"] = model_dict["head.fc.weight"]
+    net_dict["head.fc.bias"] = model_dict["head.fc.bias"]
+
+    # print(ckpt)
+    # print(ckpt['model'])
+    net_dict.update(pretrained_dict)
+    print("net_dict:")
+    for k, v in net_dict.items():
+        if k in ["head.fc.weight", "head.fc.bias", "fc.weight", "fc.bias"]:
+            print(k)
+    net.load_state_dict(net_dict)
+
+    # net_dict = {}
     for k, v in state_dict.items():
         if k[:4] == "head":
             k = k.replace("head.", "")
             head_dict[k] = v
-        else:
-            k = k.replace("encoder.", "ext.")
-            k = k.replace("fc.", "head.fc.")
-            net_dict[k] = v
+    #     else:
+    #         k = k.replace("encoder.module.", "ext.")
+    #         k = k.replace("downsample", "shortcut")
+    #         k = k.replace("fc.", "head.fc.")
+    #         net_dict[k] = v
 
+    # head_dict["0.weight"] = model_dict["head.fc.weight"]
+    # head_dict["0.bias"] = model_dict["head.fc.bias"]
+    # head_dict["2.weight"] = model_dict["head.fc.weight"]
+    # head_dict["2.bias"] = model_dict["head.fc.bias"]
     net.load_state_dict(net_dict)
-    head.load_state_dict(head_dict)
+    #TODO make it a switch, will need to load to head in the future
+    # head = nn.Sequential(
+    #     nn.Linear(dim_in, dim_in),
+    #     nn.ReLU(inplace=True),
+    #     nn.Linear(dim_in, feat_dim)
+    # )
+    # head.load_state_dict(head_dict)
 
     print('Loaded model trained jointly on Classification and SimCLR:', filename)
 
@@ -78,15 +125,7 @@ def build_resnet50(args):
     from models.SSHead import ExtractorHead
 
     print('Building ResNet50...')
-    if args.dataset == 'cifar10':
-        classes = 10
-    elif args.dataset == 'cifar7':
-        if not hasattr(args, 'modified') or args.modified:
-            classes = 7
-        else:
-            classes = 10
-    elif args.dataset == "cifar100":
-        classes = 100
+    classes = 186
 
     classifier = LinearClassifier(num_classes=classes).cuda()
     ssh = SupConResNet().cuda()
@@ -95,30 +134,6 @@ def build_resnet50(args):
     net = ExtractorHead(ext, classifier).cuda()
     return net, ext, head, ssh, classifier
 
-def build_bert(args, model):
-    from models.bert.bert import BertFeaturizer
-    from models.bert.distilbert import DistilBertFeaturizer
-
-
-    if args.dataset == 'civlcomments':
-        classes = 2
-    
-    if model == "bert":
-        pretrained_model = "bert-base-uncased"
-        ext = BertFeaturizer.from_pretrained(pretrained_model).cuda()
-
-    elif model == "distilbert":
-        pretrained_model = "distilbert-base-uncased"
-        # todo 'model_kwargs'
-        ext = DistilBertFeaturizer.from_pretrained(pretrained_model).cuda()
-
-    classifer = nn.Linear(ext.d_out, classes).cuda()
-    net = ExtractorHead(ext, classifer).cuda()
-
-    # todo devise a ssh task
-    sshead = 1
-    ssh = 1
-    return net, ext, sshead, ssh, classifer
 
 def build_model(args):
     from models.ResNet import ResNetCifar as ResNet
@@ -173,13 +188,28 @@ def build_model(args):
         ssh = torch.nn.DataParallel(ssh)
     return net, ext, head, ssh
 
+def accuracy(output, target, topk=(1,)):
+    """Computes the accuracy over the k top predictions for the specified values of k"""
+    with torch.no_grad():
+        maxk = max(topk)
+        batch_size = target.size(0)
+
+        _, pred = output.topk(maxk, 1, True, True)
+        pred = pred.t()
+        correct = pred.eq(target.view(1, -1).expand_as(pred))
+
+        res = []
+        for k in topk:
+            correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
+            res.append(correct_k.mul_(100.0 / batch_size))
+        return res
 
 def test(dataloader, model, sslabel=None):
     criterion = nn.CrossEntropyLoss(reduction='none').cuda()
     model.eval()
     correct = []
     losses = []
-    for batch_idx, (inputs, labels) in enumerate(dataloader):
+    for batch_idx, (inputs, labels, meta) in enumerate(dataloader):
         if sslabel is not None:
             inputs, labels = rotate_batch(inputs, sslabel)
         inputs, labels = inputs.cuda(), labels.cuda()
@@ -188,10 +218,25 @@ def test(dataloader, model, sslabel=None):
             loss = criterion(outputs, labels)
             losses.append(loss.cpu())
             _, predicted = outputs.max(1)
+            # acc1, acc5 = accuracy(outputs, labels, topk=(1, 5))
+            #
+            # print("predicted/labels sample")
+            # print(predicted[:10])
+            # print(labels[:10])
             correct.append(predicted.eq(labels).cpu())
+        # del predicted
+        # del inputs
+        # del labels
+        #
+        # torch.cuda.empty_cache()
+
     correct = torch.cat(correct).numpy()
     losses = torch.cat(losses).numpy()
     model.train()
+    # print("1-correct.mean(), correct, losses")
+    # print(1-correct.mean())
+    # print(correct)
+    print(losses)
     return 1-correct.mean(), correct, losses
 
 

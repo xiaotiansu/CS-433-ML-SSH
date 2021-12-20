@@ -9,13 +9,13 @@
 #SBATCH --time 6:00:00
 #SBATCH --partition gpu
 
-#SBATCH --cpus-per-task 20
-#SBATCH --mem 90G
-#SBATCH --gres gpu:1
-
 ##SBATCH --cpus-per-task 40
 ##SBATCH --mem 180G
 ##SBATCH --gres gpu:2
+
+#SBATCH --cpus-per-task 20
+#SBATCH --mem 90G
+#SBATCH --gres gpu:1
 
 ##SBATCH --reservation vita
 ##SBATCH --time 1:00:00
@@ -27,8 +27,7 @@ date
 #        venv
 ###########################
 
-module load gcc/8.4.0-cuda python/3.7.7
-module load py-torch/1.6.0-cuda-openmp py-torchvision/0.6.1
+module load gcc/8.4.0-cuda python/3.7.7 py-torch/1.6.0-cuda-openmp py-torchvision/0.6.1
 
 source /home/yueliu/vita/ttt_cifar_improved/venvcifarttt/bin/activate
 
@@ -44,8 +43,10 @@ DATASET=cifar10
 if [ -z "${CORRUPT+xxx}" ]; then
     echo "Use args within script"
     # CORRUPT=cifar_new
-    CORRUPT=snow
-    BS=16
+    # CORRUPT=snow
+    CORRUPT=fog
+    # CORRUPT=glass_blur
+    # CORRUPT=elastic_transform
 else
     echo "Use args from external input"
 fi
@@ -55,9 +56,19 @@ fi
 #        python
 ###########################
 
-# bash scripts/run_ttt++_cifar.sh ${CORRUPT} both ${COEF}
+# BS=64
+BS=128
+# BS=256
 
-FACTOR=8
+# FACTOR=0
+# FACTOR=2
+# FACTOR=4
+# FACTOR=8
+# FACTOR=16
+FACTOR=32
+
 QS=$((${BS}*${FACTOR}))
 
+# bash scripts/run_ttt++_cifar.sh ${CORRUPT} ssl $BS $QS
 bash scripts/run_ttt++_cifar.sh ${CORRUPT} align $BS $QS
+# bash scripts/run_ttt++_cifar.sh ${CORRUPT} both $BS $QS

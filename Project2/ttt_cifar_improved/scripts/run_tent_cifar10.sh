@@ -2,8 +2,7 @@
 
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
-DATADIR=/data/cifar
-DATASET=cifar10
+DATASET=iwildcam
 
 # ===================================
 
@@ -13,8 +12,8 @@ if [ "$#" -lt 2 ]; then
 	CORRUPT=snow
 	# CORRUPT=cifar_new
 
-	METHOD=shot
-	NSAMPLE=100000
+	METHOD=tent
+	NSAMPLE=1000
 else
 	CORRUPT=$1
 	METHOD=$2
@@ -25,27 +24,28 @@ fi
 
 
 LR=0.001
-BS_SHOT=256
+BS_TENT=256
 
 echo 'DATASET: '${DATASET}
 echo 'CORRUPT: '${CORRUPT}
 echo 'METHOD:' ${METHOD}
 echo 'LR:' ${LR}
-echo 'BS_SHOT:' ${BS_SHOT}
+echo 'BS_TENT:' ${BS_TENT}
 echo 'NSAMPLE:' ${NSAMPLE}
 
 # ===================================
 
 printf '\n---------------------\n\n'
 
-python shot.py \
+python tent.py \
 	--dataroot ${DATADIR} \
 	--resume results/${DATASET}_joint_resnet50 \
-	--outf results/${DATASET}_shot_joint_resnet50 \
+	--outf results/${DATASET}_tent_joint_resnet50 \
 	--corruption ${CORRUPT} \
 	--level ${LEVEL} \
 	--workers 36 \
-	--batch_size ${BS_SHOT} \
+	--batch_size ${BS_TENT} \
 	--lr ${LR} \
-	--num_sample ${NSAMPLE}
+	--num_sample ${NSAMPLE} \
+	--resume save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_2
 	# --tsne
