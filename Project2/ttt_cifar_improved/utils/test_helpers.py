@@ -88,9 +88,6 @@ def load_resnet50(net, head, ssh, classifier, args):
     for name, param in ssh.named_parameters():
         print(name)
 
-    import pdb
-    pdb.set_trace()
-
 
 def load_ttt(net, head, ssh, classifier, args):
     filename = args.resume + '/{}_both.pth'.format(args.corruption)
