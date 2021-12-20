@@ -151,6 +151,8 @@ def set_model(opt):
         dataroot="/data/wilds/"
         workers=16
         batch_size=256
+        resume='save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_3'
+        ckpt=10
 
     model, ext, head, ssh, classifier = build_resnet50(args)
     load_resnet50(model, head, ssh, classifier, args)
