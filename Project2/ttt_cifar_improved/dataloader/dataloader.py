@@ -19,7 +19,7 @@ class IWildData():
         self.dataset = IWildCamDataset(root_dir=os.path.join(args.dataroot, 'wilds'), download=True)
         # self.tr_transforms, self.te_transforms, self.simclr_transforms = prepare_transforms(args.dataset)
         self.tr_transforms = transforms.Compose([
-            transforms.Resize((224, 224)),
+            transforms.Resize((32, 32)),
             # transforms.RandomResizedCrop(size=32, scale=(0.2, 1.)),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
@@ -28,14 +28,14 @@ class IWildData():
         ])
 
         self.te_transforms = transforms.Compose([
-            transforms.Resize((224, 224)),
+            transforms.Resize((32, 32)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406],
                                  [0.229, 0.224, 0.225])
         ])
 
         self.simclr_transforms = transforms.Compose([
-            transforms.Resize((224, 224)),
+            transforms.Resize((32, 32)),
             transforms.RandomHorizontalFlip(),
             transforms.RandomApply([
                 transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
