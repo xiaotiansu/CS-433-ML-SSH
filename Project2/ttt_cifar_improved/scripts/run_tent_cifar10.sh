@@ -24,7 +24,7 @@ fi
 
 
 LR=0.001
-BS_TENT=256
+BS_TENT=64
 
 echo 'DATASET: '${DATASET}
 echo 'CORRUPT: '${CORRUPT}

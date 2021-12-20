@@ -23,7 +23,7 @@ fi
 
 
 LR=0.001
-BS_SHOT=256
+BS_SHOT=64
 
 echo 'DATASET: '${DATASET}
 echo 'CORRUPT: '${CORRUPT}
