@@ -32,7 +32,6 @@ def load_resnet50(net, head, ssh, classifier, args):
             # k = k.replace("head.fc.", "fc.")
             net_dict[k] = v
 
-    print("pretrained_dict:")
     # for k, v in state_dict.items():
     #     if "weight" in k:
     #         print(k)
@@ -46,11 +45,14 @@ def load_resnet50(net, head, ssh, classifier, args):
     # print(ckpt)
     # print(ckpt['model'])
     net_dict.update(pretrained_dict)
-    print("net_dict:")
+    print("**net_dict:")
     for k, v in net_dict.items():
         print(k)
-    print("head_dict:")
-    for k, v in head_dict.items():
+    print("**required head_dict:")
+    for k, v in head.state_dict().items():
+        print(k)
+    print("**required net_dict:")
+    for k, v in model_dict.items():
         print(k)
     for k, v in state_dict.items():
         if k[:4] == "head":
