@@ -222,7 +222,8 @@ class AverageMeter(object):
 
 
 def test(dataloader, model, sslabel=None):
-    criterion = nn.CrossEntropyLoss(reduction='none').cuda()
+    # criterion = nn.CrossEntropyLoss(reduction='none').cuda()
+    criterion = torch.nn.CrossEntropyLoss()
     model.eval()
     correct = []
     losses = []
