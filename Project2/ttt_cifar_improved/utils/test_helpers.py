@@ -203,22 +203,23 @@ def accuracy(output, target, topk=(1,)):
             correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
-class AverageMeter(object):
-    """Computes and stores the average and current value"""
-    def __init__(self):
-        self.reset()
 
-    def reset(self):
-        self.val = 0
-        self.avg = 0
-        self.sum = 0
-        self.count = 0
-
-    def update(self, val, n=1):
-        self.val = val
-        self.sum += val * n
-        self.count += n
-        self.avg = self.sum / self.count
+# class AverageMeter(object):
+#     """Computes and stores the average and current value"""
+#     def __init__(self):
+#         self.reset()
+#
+#     def reset(self):
+#         self.val = 0
+#         self.avg = 0
+#         self.sum = 0
+#         self.count = 0
+#
+#     def update(self, val, n=1):
+#         self.val = val
+#         self.sum += val * n
+#         self.count += n
+#         self.avg = self.sum / self.count
 
 
 def test(dataloader, model, sslabel=None):
@@ -227,8 +228,8 @@ def test(dataloader, model, sslabel=None):
     model.eval()
     correct = []
     losses = []
-    losses = AverageMeter()
-    top1 = AverageMeter()
+    losses = AverageMeter('Loss', ':.4e')
+    top1 = AverageMeter('Top1', ':.4e')
     for batch_idx, (inputs, labels, meta) in enumerate(dataloader):
         if sslabel is not None:
             inputs, labels = rotate_batch(inputs, sslabel)

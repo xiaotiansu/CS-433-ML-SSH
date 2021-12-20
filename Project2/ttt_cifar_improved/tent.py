@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 from dataloader.dataloader import IWildData
-from utils.misc import *
+from utils.misc import AverageMeter
 from utils.test_helpers import *
 from utils.prepare_dataset import *
 
