@@ -47,7 +47,7 @@ echo 'NSAMPLE:' ${NSAMPLE}
 
 printf '\n---------------------\n\n'
 
-python -m pdb ttt++.py \
+python ttt++.py \
 	--dataroot ${DATADIR} \
 	--resume ${RESUME} \
 	--outf results/${DATASET}_ttt_simclr_joint_resnet50 \
