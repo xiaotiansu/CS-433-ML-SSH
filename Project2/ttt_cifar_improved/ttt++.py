@@ -216,7 +216,10 @@ for epoch in range(1, args.nepoch+1):
     for batch_idx, (inputs, labels, meta) in enumerate(trloader):
         torch.cuda.empty_cache()
         optimizer.zero_grad()
-
+        import pdb
+        pdb.set_trace()
+        print(inputs[0].shape)
+        
         if args.method in ['ssl', 'both']:
             images = torch.cat([inputs[0], inputs[1]], dim=0)
             images = images.cuda(non_blocking=True)
