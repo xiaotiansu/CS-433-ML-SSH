@@ -131,6 +131,8 @@ load_resnet50(net, head, ssh, classifier, args)
 if torch.cuda.device_count() > 1:
     ext = torch.nn.DataParallel(ext)
 
+cudnn.benchmark = True
+
 # ----------- Offline Feature Summarization ------------
 
 if args.method in ['align', 'both']:
