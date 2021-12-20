@@ -161,11 +161,11 @@ def set_model(opt):
 
     # enable synchronized Batch Normalization
     if opt.syncBN:
-        model = apex.parallel.convert_syncbn_model(model.encoder)
+        model = apex.parallel.convert_syncbn_model(model.ext)
 
     if torch.cuda.is_available():
         if torch.cuda.device_count() > 1:
-            model.encoder = torch.nn.DataParallel(model.encoder)
+            model.ext = torch.nn.DataParallel(model.ext)
         model = model.cuda()
         criterion = criterion.cuda()
         cudnn.benchmark = True
