@@ -48,8 +48,7 @@ def load_resnet50(net, head, ssh, classifier, args):
     net_dict.update(pretrained_dict)
     print("net_dict:")
     for k, v in net_dict.items():
-        if k in ["head.fc.weight", "head.fc.bias", "fc.weight", "fc.bias"]:
-            print(k)
+        print(k) 
     net.load_state_dict(net_dict)
 
     # net_dict = {}
@@ -204,64 +203,40 @@ def accuracy(output, target, topk=(1,)):
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 
-# class AverageMeter(object):
-#     """Computes and stores the average and current value"""
-#     def __init__(self):
-#         self.reset()
-#
-#     def reset(self):
-#         self.val = 0
-#         self.avg = 0
-#         self.sum = 0
-#         self.count = 0
-#
-#     def update(self, val, n=1):
-#         self.val = val
-#         self.sum += val * n
-#         self.count += n
-#         self.avg = self.sum / self.count
-
-
 def test(dataloader, model, sslabel=None):
-    # criterion = nn.CrossEntropyLoss(reduction='none').cuda()
-    criterion = torch.nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss(reduction='none').cuda()
     model.eval()
     correct = []
     losses = []
-    losses = AverageMeter('Loss', ':.4e')
-    top1 = AverageMeter('Top1', ':.4e')
     for batch_idx, (inputs, labels, meta) in enumerate(dataloader):
         if sslabel is not None:
             inputs, labels = rotate_batch(inputs, sslabel)
-        inputs, labels = inputs.float().cuda(), labels.cuda()
+        inputs, labels = inputs.cuda(), labels.cuda()
         with torch.no_grad():
             outputs = model(inputs)
             loss = criterion(outputs, labels)
-            # losses.append(loss.cpu())
-            # _, predicted = outputs.max(1)
-            bsz = labels.shape[0]
-            # update metric
-            losses.update(loss.item(), bsz)
-            acc1, acc5 = accuracy(outputs, labels, topk=(1, 5))
-            top1.update(acc1[0], bsz)
+            losses.append(loss.cpu())
+            _, predicted = outputs.max(1)
+            # acc1, acc5 = accuracy(outputs, labels, topk=(1, 5))
             #
             # print("predicted/labels sample")
             # print(predicted[:10])
             # print(labels[:10])
-            # correct.append(predicted.eq(labels).cpu())
+            correct.append(predicted.eq(labels).cpu())
         # del predicted
         # del inputs
         # del labels
         #
         # torch.cuda.empty_cache()
 
-    # correct = torch.cat(correct).numpy()
-    # losses = torch.cat(losses).numpy()
+    correct = torch.cat(correct).numpy()
+    losses = torch.cat(losses).numpy()
     model.train()
     # print("1-correct.mean(), correct, losses")
     # print(1-correct.mean())
-    print(' * Acc@1 {top1.avg:.3f}'.format(top1=top1))
-    return 1-top1.avg, top1.avg, losses.avg
+    # print(correct)
+    print(losses)
+    return 1-correct.mean(), correct, losses
 
 
 def test_grad_corr(dataloader, net, ssh, ext):
