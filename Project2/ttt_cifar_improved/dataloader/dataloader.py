@@ -19,7 +19,7 @@ class IWildData():
         self.dataset = IWildCamDataset(root_dir=os.path.join(args.dataroot, 'wilds'), download=True)
         # self.tr_transforms, self.te_transforms, self.simclr_transforms = prepare_transforms(args.dataset)
         self.tr_transforms = transforms.Compose([
-            transforms.Resize((32, 32)),
+            transforms.Resize((224, 224)),
             # transforms.RandomResizedCrop(size=32, scale=(0.2, 1.)),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
@@ -28,14 +28,14 @@ class IWildData():
         ])
 
         self.te_transforms = transforms.Compose([
-            transforms.Resize((32, 32)),
+            transforms.Resize((224, 224)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406],
                                  [0.229, 0.224, 0.225])
         ])
 
         self.simclr_transforms = transforms.Compose([
-            transforms.Resize((32, 32)),
+            transforms.Resize((224, 224)),
             transforms.RandomHorizontalFlip(),
             transforms.RandomApply([
                 transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
@@ -77,7 +77,7 @@ class IWildData():
     def get_test_dataloader(self, args, ttt=False, num_sample=None):
         # if not hasattr(args, 'corruption') or args.corruption == 'original':
         #     print('Test on the original test set')
-        test_data = self.dataset.get_subset('test', frac = 0.1, transform=self.te_transforms)
+        test_data = self.dataset.get_subset('test', frac = 1, transform=self.te_transforms)
         teset = GeneralWilds_Batched_Dataset(test_data, args.batch_size, domain_idx=0)
 
         # elif args.corruption in common_corruptions:
