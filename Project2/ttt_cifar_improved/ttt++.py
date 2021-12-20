@@ -122,6 +122,9 @@ if args.method == 'both':
 
 print('Resuming from %s...' %(args.resume))
 
+import pdb
+pdb.set_trace()
+
 # net= torch.nn.DataParallel(net)
 load_resnet50(net, head, ssh, classifier, args)
 
@@ -216,8 +219,6 @@ for epoch in range(1, args.nepoch+1):
     for batch_idx, (inputs, labels, meta) in enumerate(trloader):
         torch.cuda.empty_cache()
         optimizer.zero_grad()
-        import pdb
-        pdb.set_trace()
         print(inputs[0].shape)
         
         if args.method in ['ssl', 'both']:
