@@ -203,41 +203,63 @@ def accuracy(output, target, topk=(1,)):
             correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
+class AverageMeter(object):
+    """Computes and stores the average and current value"""
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.val = 0
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
+
+    def update(self, val, n=1):
+        self.val = val
+        self.sum += val * n
+        self.count += n
+        self.avg = self.sum / self.count
+
 
 def test(dataloader, model, sslabel=None):
     criterion = nn.CrossEntropyLoss(reduction='none').cuda()
     model.eval()
     correct = []
     losses = []
+    losses = AverageMeter()
+    top1 = AverageMeter()
     for batch_idx, (inputs, labels, meta) in enumerate(dataloader):
         if sslabel is not None:
             inputs, labels = rotate_batch(inputs, sslabel)
-        inputs, labels = inputs.cuda(), labels.cuda()
+        inputs, labels = inputs.float().cuda(), labels.cuda()
         with torch.no_grad():
             outputs = model(inputs)
             loss = criterion(outputs, labels)
-            losses.append(loss.cpu())
-            _, predicted = outputs.max(1)
-            # acc1, acc5 = accuracy(outputs, labels, topk=(1, 5))
+            # losses.append(loss.cpu())
+            # _, predicted = outputs.max(1)
+            bsz = labels.shape[0]
+            # update metric
+            losses.update(loss.item(), bsz)
+            acc1, acc5 = accuracy(outputs, labels, topk=(1, 5))
+            top1.update(acc1[0], bsz)
             #
             # print("predicted/labels sample")
             # print(predicted[:10])
             # print(labels[:10])
-            correct.append(predicted.eq(labels).cpu())
+            # correct.append(predicted.eq(labels).cpu())
         # del predicted
         # del inputs
         # del labels
         #
         # torch.cuda.empty_cache()
 
-    correct = torch.cat(correct).numpy()
-    losses = torch.cat(losses).numpy()
+    # correct = torch.cat(correct).numpy()
+    # losses = torch.cat(losses).numpy()
     model.train()
     # print("1-correct.mean(), correct, losses")
     # print(1-correct.mean())
-    # print(correct)
-    print(losses)
-    return 1-correct.mean(), correct, losses
+    print(' * Acc@1 {top1.avg:.3f}'.format(top1=top1))
+    return 1-top1.avg, top1.avg, losses.avg
 
 
 def test_grad_corr(dataloader, net, ssh, ext):
