@@ -46,6 +46,6 @@ python shot.py \
 	--batch_size ${BS_SHOT} \
 	--lr ${LR} \
 	--num_sample ${NSAMPLE} \
-	--resume save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_2
+	--resume save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_3
 
 	# --tsne
