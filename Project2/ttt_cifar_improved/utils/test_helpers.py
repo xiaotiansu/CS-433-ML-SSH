@@ -48,7 +48,7 @@ def load_resnet50(net, head, ssh, classifier, args):
     net_dict.update(pretrained_dict)
     print("net_dict:")
     for k, v in net_dict.items():
-        print(k) 
+        print(k)
     net.load_state_dict(net_dict)
 
     # net_dict = {}
