@@ -81,6 +81,11 @@ def load_resnet50(net, head, ssh, classifier, args):
     print('Loaded model trained jointly on Classification and SimCLR:', filename)
     for name, param in net.named_parameters():
         print(name)
+    for name, param in head.named_parameters():
+        print(name)
+    for name, param in ssh.named_parameters():
+        print(name)
+
     import pdb
     pdb.set_trace()
 
