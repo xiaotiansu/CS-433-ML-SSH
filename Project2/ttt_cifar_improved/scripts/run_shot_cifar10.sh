@@ -2,7 +2,7 @@
 
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
-DATASET=cifar10
+DATASET=iwildcam
 
 # ===================================
 
@@ -12,7 +12,7 @@ if [ "$#" -lt 2 ]; then
 	CORRUPT=snow
 
 	METHOD=shot
-	NSAMPLE=100000
+	NSAMPLE=1000
 else
 	CORRUPT=$1
 	METHOD=$2
