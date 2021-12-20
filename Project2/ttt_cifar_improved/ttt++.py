@@ -180,6 +180,7 @@ print('Running...')
 print('Error (%)\t\ttest')
 
 err_cls = test(teloader, net)[0]
+torch.cuda.empty_cache()
 print(('Epoch %d/%d:' %(0, args.nepoch)).ljust(24) +
             '%.2f\t\t' %(err_cls*100))
 
