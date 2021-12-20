@@ -14,6 +14,7 @@ def load_resnet50(net, head, ssh, classifier, args):
     ckpt = torch.load(filename)
     state_dict = ckpt['model']
 
+
     model_dict = net.state_dict()
     net_dict = {}
     head_dict = {}
@@ -78,6 +79,9 @@ def load_resnet50(net, head, ssh, classifier, args):
     # head.load_state_dict(head_dict)
 
     print('Loaded model trained jointly on Classification and SimCLR:', filename)
+    for name, param in net.named_parameters():
+        print(name)
+        print(param.data)
 
 
 def load_ttt(net, head, ssh, classifier, args):
