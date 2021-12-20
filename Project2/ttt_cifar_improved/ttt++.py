@@ -214,7 +214,7 @@ for epoch in range(1, args.nepoch+1):
     ext.train()
 
     for batch_idx, (inputs, labels, meta) in enumerate(trloader):
-
+        torch.cuda.empty_cache()
         optimizer.zero_grad()
 
         if args.method in ['ssl', 'both']:
@@ -281,7 +281,6 @@ for epoch in range(1, args.nepoch+1):
         if args.method == 'both' and is_both_activated:
 
             try:
-                inputs, _, _ = next(trloader_extra_iter)
                 inputs, _, _ = next(trloader_extra_iter)
             except StopIteration:
                 del trloader_extra_iter

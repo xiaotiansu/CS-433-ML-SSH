@@ -224,11 +224,11 @@ def test(dataloader, model, sslabel=None):
             # print(predicted[:10])
             # print(labels[:10])
             correct.append(predicted.eq(labels).cpu())
-        del predicted
-        del inputs
-        del labels
-        
-        torch.cuda.empty_cache()
+        # del predicted
+        # del inputs
+        # del labels
+        #
+        # torch.cuda.empty_cache()
 
     correct = torch.cat(correct).numpy()
     losses = torch.cat(losses).numpy()

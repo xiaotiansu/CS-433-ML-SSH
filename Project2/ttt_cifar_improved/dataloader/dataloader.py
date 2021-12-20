@@ -48,7 +48,7 @@ class IWildData():
 
     def get_train_dataloader(self, args, num_sample=None):
         if hasattr(args, 'ssl') and args.ssl == 'contrastive':
-            train_data = self.dataset.get_subset('train', frac = 0.01, transform=TwoCropTransform(self.simclr_transforms))
+            train_data = self.dataset.get_subset('train', frac = 0.1, transform=TwoCropTransform(self.simclr_transforms))
             train_sets = GeneralWilds_Batched_Dataset(train_data, args.batch_size, domain_idx=0)
             # if hasattr(args, 'corruption') and args.corruption in common_corruptions:
             #     print('Contrastive on %s level %d' %(args.corruption, args.level))
