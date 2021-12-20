@@ -44,7 +44,7 @@ parser.add_argument('--workers', default=0, type=int)
 parser.add_argument('--num_sample', default=1000000, type=int)
 ########################################################################
 parser.add_argument('--lr', default=0.001, type=float)
-parser.add_argument('--nepoch', default=500, type=int, help='maximum number of epoch for ttt')
+parser.add_argument('--nepoch', default=50, type=int, help='maximum number of epoch for ttt')
 parser.add_argument('--bnepoch', default=2, type=int, help='first few epochs to update bn stat')
 parser.add_argument('--delayepoch', default=0, type=int)
 parser.add_argument('--stopepoch', default=25, type=int)
