@@ -19,6 +19,7 @@ from util import set_optimizer, save_model
 from networks.resnet_big import SupCEResNet, OfficialResNet
 
 from dataloader.dataloader import IWildData
+from utils.test_helpers import build_resnet50, load_resnet50
 
 try:
     import apex
@@ -145,7 +146,14 @@ def set_loader(opt):
 
 def set_model(opt):
     # model = SupCEResNet(name=opt.model, num_classes=opt.n_cls)
-    model = OfficialResNet(name=opt.model, num_classes=opt.n_cls)
+    # model = OfficialResNet(name=opt.model, num_classes=opt.n_cls)
+    class args:
+        dataroot="/data/wilds/"
+        workers=16
+        batch_size=256
+
+    model, ext, head, ssh, classifier = build_resnet50(args)
+    load_resnet50(model, head, ssh, classifier, args)
 
     criterion = torch.nn.CrossEntropyLoss()
 

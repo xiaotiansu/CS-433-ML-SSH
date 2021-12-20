@@ -49,9 +49,7 @@ def load_resnet50(net, head, ssh, classifier, args):
     print("net_dict:")
     for k, v in net_dict.items():
         print(k)
-    net.load_state_dict(net_dict)
 
-    # net_dict = {}
     for k, v in state_dict.items():
         if k[:4] == "head":
             k = k.replace("head.", "")
