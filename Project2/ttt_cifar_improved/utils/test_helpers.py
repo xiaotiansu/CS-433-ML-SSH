@@ -49,7 +49,9 @@ def load_resnet50(net, head, ssh, classifier, args):
     print("net_dict:")
     for k, v in net_dict.items():
         print(k)
-
+    print("head_dict:")
+    for k, v in head_dict.items():
+        print(k)
     for k, v in state_dict.items():
         if k[:4] == "head":
             k = k.replace("head.", "")
@@ -71,7 +73,7 @@ def load_resnet50(net, head, ssh, classifier, args):
     #     nn.ReLU(inplace=True),
     #     nn.Linear(dim_in, feat_dim)
     # )
-    # head.load_state_dict(head_dict)
+    head.load_state_dict(head_dict)
 
     print('Loaded model trained jointly on Classification and SimCLR:', filename)
 
