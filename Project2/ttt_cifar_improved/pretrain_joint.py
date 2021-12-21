@@ -32,7 +32,7 @@ def parse_option():
 
     parser.add_argument('--print_freq', type=int, default=10,
                         help='print frequency')
-    parser.add_argument('--save_freq', type=int, default=50,
+    parser.add_argument('--save_freq', type=int, default=10,
                         help='save frequency')
     parser.add_argument('--save_dir', type=str, default='./save',
                         help='save directory')
@@ -299,6 +299,7 @@ def validate(val_loader, model, criterion, opt):
             # forward
             output, _ = model(images)
             loss = criterion(output, labels)
+        
 
             # update metric
             losses.update(loss.item(), bsz)
