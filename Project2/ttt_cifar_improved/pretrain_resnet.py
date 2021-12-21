@@ -38,7 +38,7 @@ def parse_option():
                         help='save frequency')
     parser.add_argument('--save_dir', type=str, default='./save',
                         help='save directory')
-    parser.add_argument('--batch_size', type=int, default=128,
+    parser.add_argument('--batch_size', type=int, default=256,
                         help='batch_size')
     parser.add_argument('--num_workers', type=int, default=16,
                         help='num of workers to use')
@@ -132,9 +132,9 @@ def parse_option():
 
 def set_loader(opt):
     class args:
-        dataroot="/data/wilds/"
+        dataroot=opt.data_folder
         workers=16
-        batch_size=256
+        batch_size=opt.batch_size
 
     dataloader = IWildData(args)
 

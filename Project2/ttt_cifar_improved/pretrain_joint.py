@@ -161,14 +161,16 @@ def parse_option():
     # else:
     #     raise ValueError('dataset not supported: {}'.format(opt.dataset))
 
+    opt.ckpt = "./save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_128_trial_3/ckpt_epoch_10.pth"
+
     return opt
 
 
 def set_loader(opt):
     class args:
-        dataroot="/data/wilds/"
+        dataroot=opt.data_folder
         workers=16
-        batch_size=256
+        batch_size=opt.batch_size
         ssl="contrastive"
 
     dataloader = IWildData(args)
