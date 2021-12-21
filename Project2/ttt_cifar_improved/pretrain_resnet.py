@@ -146,26 +146,26 @@ def set_loader(opt):
 
 def set_model(opt):
     # model = SupCEResNet(name=opt.model, num_classes=opt.n_cls)
-    # model = OfficialResNet(name=opt.model, num_classes=opt.n_cls)
-    class args:
-        dataroot="/data/wilds/"
-        workers=16
-        batch_size=256
-        resume='save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_3'
-        ckpt=10
+    model = OfficialResNet(name=opt.model, num_classes=opt.n_cls)
+    # class args:
+    #     dataroot="/data/wilds/"
+    #     workers=16
+    #     batch_size=256
+    #     resume='save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_3'
+    #     ckpt=10
 
-    model, ext, head, ssh, classifier = build_resnet50(args)
-    load_resnet50(model, head, ssh, classifier, args)
+    # model, ext, head, ssh, classifier = build_resnet50(args)
+    # load_resnet50(model, head, ssh, classifier, args)
 
     criterion = torch.nn.CrossEntropyLoss()
 
     # enable synchronized Batch Normalization
     if opt.syncBN:
-        model = apex.parallel.convert_syncbn_model(model.ext)
+        model = apex.parallel.convert_syncbn_model(model.encoder)
 
     if torch.cuda.is_available():
         if torch.cuda.device_count() > 1:
-            model.ext = torch.nn.DataParallel(model.ext)
+            model.encoder = torch.nn.DataParallel(model.encoder)
         model = model.cuda()
         criterion = criterion.cuda()
         cudnn.benchmark = True
