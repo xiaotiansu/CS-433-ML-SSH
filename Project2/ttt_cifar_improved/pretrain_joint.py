@@ -291,7 +291,7 @@ def validate(val_loader, model, criterion, opt):
 
     with torch.no_grad():
         end = time.time()
-        for idx, (images, labels) in enumerate(val_loader):
+        for idx, (images, labels, meta) in enumerate(val_loader):
             images = images.float().cuda()
             labels = labels.cuda()
             bsz = labels.shape[0]
