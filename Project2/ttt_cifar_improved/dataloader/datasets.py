@@ -194,7 +194,7 @@ class GeneralWilds_Batched_Dataset(Dataset):
     Batched dataset for Amazon, Camelyon and IwildCam. Allows for getting a batch of data given
     a specific domain index.
     """
-    def __init__(self, train_data, batch_size=16, domain_idx=0):
+    def __init__(self, train_data, batch_size=16, domain_idx=0, domain=0):
         domains = train_data.metadata_array[:, domain_idx]
         self.domain_indices = [torch.nonzero(domains == loc).squeeze(-1) for loc in domains.unique()]
         train_data._input_array = [train_data.dataset._input_array[i] for i in train_data.indices]
@@ -212,11 +212,21 @@ class GeneralWilds_Batched_Dataset(Dataset):
             self.data_dir = f'{self.data_dir}/train'
         self.transform = train_data.transform
 
-        self.data = train_data._input_array
-        self.targets = self.y_array
-        self.domains = self.metadata_array[:, domain_idx]
-        self.batch_size = batch_size
+        if domain != 0:
+            desired_indices = torch.nonzero(domains == domain).squeeze(-1)
+            self.data = [train_data._input_array[idx] for idx in desired_indices]
+            self.targets = [self.y_array[idx] for idx in desired_indices]
+            self.domains = self.metadata_array[:, domain_idx]
+            self.domains = [self.domains[idx] for idx in desired_indices]
+            self.batch_size = batch_size
+        else:
+            self.data = train_data._input_array
+            self.targets = self.y_array
+            self.domains = self.metadata_array[:, domain_idx]
+            self.batch_size = batch_size
+
         print("here1")
+
     def reset_batch(self):
         """Reset batch indices for each domain."""
         self.batch_indices, self.batches_left = {}, {}

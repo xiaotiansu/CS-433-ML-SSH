@@ -48,7 +48,7 @@ class IWildData():
 
     def get_train_dataloader(self, args, num_sample=None):
         if hasattr(args, 'ssl') and args.ssl == 'contrastive':
-            train_data = self.dataset.get_subset('train', frac = 1, transform=TwoCropTransform(self.simclr_transforms))
+            train_data = self.dataset.get_subset('train', frac = 0.3, transform=TwoCropTransform(self.simclr_transforms))
             train_sets = GeneralWilds_Batched_Dataset(train_data, args.batch_size, domain_idx=0)
             # if hasattr(args, 'corruption') and args.corruption in common_corruptions:
             #     print('Contrastive on %s level %d' %(args.corruption, args.level))
@@ -57,7 +57,7 @@ class IWildData():
             #     trset_raw = trset_raw[(args.level-1)*tesize: args.level*tesize]
             #     train_data.data = trset_raw
         else:
-            train_data = self.dataset.get_subset('train', frac = 1, transform=self.tr_transforms)
+            train_data = self.dataset.get_subset('train', frac = 0.3, transform=self.tr_transforms)
             train_sets = GeneralWilds_Batched_Dataset(train_data, args.batch_size, domain_idx=0)
 
         if not hasattr(args, 'workers') or args.workers < 2:
@@ -78,7 +78,7 @@ class IWildData():
         # if not hasattr(args, 'corruption') or args.corruption == 'original':
         #     print('Test on the original test set')
         test_data = self.dataset.get_subset('test', frac = 1, transform=self.te_transforms)
-        teset = GeneralWilds_Batched_Dataset(test_data, args.batch_size, domain_idx=0)
+        teset = GeneralWilds_Batched_Dataset(test_data, args.batch_size, domain_idx=0, domain=120)
 
         # elif args.corruption in common_corruptions:
         #     print('Test on %s level %d' % (args.corruption, args.level))

@@ -3,6 +3,63 @@ import torch
 import torch.nn as nn
 from utils.misc import *
 from utils.rotation import rotate_batch
+from models.SSHead import ExtractorHead
+
+from torchsummary import summary
+
+def load_resnet50_from_joint(net, head, ssh, classifier, args):
+    if args.ckpt:
+        filename = args.resume + '/ckpt_epoch_{:d}.pth'.format(args.ckpt)
+
+    else:
+        filename = args.resume + '/ckpt.pth'
+    
+    ckpt = torch.load(filename)
+    state_dict = ckpt['model']
+
+    model_dict = net.state_dict()
+    net_dict = {}
+    head_dict = {}
+
+    for k, v in state_dict.items():
+        if k in ['fc.weight', 'fc.bias', 'head.0.weight', 'head.0.bias', 'head.2.weight', 'head.2.bias']:
+            print(k)
+        else:
+            k = k.replace("encoder.module.", "module.ext.")
+            net_dict[k] = v
+    net_dict["module.head.fc.weight"] = state_dict["fc.weight"]
+    net_dict["module.head.fc.bias"] = state_dict["fc.bias"]
+    net.load_state_dict(net_dict)
+
+    head_dict["0.weight"] = state_dict["head.0.weight"]
+    head_dict["0.bias"] = state_dict["head.0.bias"]
+    head_dict["2.weight"] = state_dict["head.2.weight"]
+    head_dict["2.bias"] = state_dict["head.2.bias"]
+    head.load_state_dict(head_dict)
+
+def load_resnet50_from_joint_for_tent(net, args):
+    if args.ckpt:
+        filename = args.resume + '/ckpt_epoch_{:d}.pth'.format(args.ckpt)
+
+    else:
+        filename = args.resume + '/ckpt.pth'
+    
+    ckpt = torch.load(filename)
+    state_dict = ckpt['model']
+
+    model_dict = net.state_dict()
+    net_dict = {}
+    head_dict = {}
+
+    for k, v in state_dict.items():
+        if k in ['fc.weight', 'fc.bias', 'head.0.weight', 'head.0.bias', 'head.2.weight', 'head.2.bias']:
+            print(k)
+        else:
+            k = k.replace("encoder.module.", "ext.")
+            net_dict[k] = v
+    net_dict["head.fc.weight"] = state_dict["fc.weight"]
+    net_dict["head.fc.bias"] = state_dict["fc.bias"]
+    net.load_state_dict(net_dict)
 
 
 def load_resnet50(net, head, ssh, classifier, args):
@@ -81,12 +138,14 @@ def load_resnet50(net, head, ssh, classifier, args):
     print('Loaded model trained jointly on Classification and SimCLR:', filename)
     for name, param in net.named_parameters():
         print(name)
-    print("head.named_parameters")
-    for name, param in head.named_parameters():
-        print(name)
-    print("ssh.named_parameters")
-    for name, param in ssh.named_parameters():
-        print(name)
+    # print("head.named_parameters")
+    # for name, param in head.named_parameters():
+    #     print(name)
+    # print("ssh.named_parameters")
+    # for name, param in ssh.named_parameters():
+    #     print(name)
+
+    summary(net, input_size=(3, 224, 224))
 
 
 def load_ttt(net, head, ssh, classifier, args):
@@ -133,9 +192,12 @@ def corrupt_resnet50(ext, args):
 def build_resnet50(args):
     from models.BigResNet import SupConResNet, LinearClassifier
     from models.SSHead import ExtractorHead
+    from networks.resnet_big import JointResNet
 
     print('Building ResNet50...')
     classes = 186
+
+    #joint = JointConResNet(featnum_classes=classes).cuda()
 
     classifier = LinearClassifier(num_classes=classes).cuda()
     ssh = SupConResNet().cuda()

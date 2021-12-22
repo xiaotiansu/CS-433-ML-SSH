@@ -16,6 +16,7 @@ from util import adjust_learning_rate, warmup_learning_rate, accuracy
 from util import set_optimizer, save_model
 from networks.resnet_big import JointConResNet, JointResNet
 from losses import SupConLoss
+from torchsummary import summary
 
 from dataloader.dataloader import IWildData
 
@@ -161,7 +162,8 @@ def parse_option():
     # else:
     #     raise ValueError('dataset not supported: {}'.format(opt.dataset))
 
-    opt.ckpt = "./save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_128_trial_3/ckpt_epoch_10.pth"
+    opt.ckpt = "./save/iwildcam_models/Joint_iwildcam_resnet50_lr_1.0_decay_0.0001_bsz_256_temp_0.5_trial_0_balance_0.5/ckpt_epoch_10.pth"
+    # opt.ckpt = "./save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_128_trial_3/ckpt_epoch_10.pth"
 
     return opt
 
@@ -216,6 +218,11 @@ def set_model(opt):
             criterion_ce = criterion_ce.cuda()
             cudnn.benchmark = True
         print('Train model from scratch')
+    
+    for name, param in model.named_parameters():
+        print(name)
+
+    summary(model, input_size=(3, 224, 224))
 
     return model, criterion_ce, criterion_ss
 
