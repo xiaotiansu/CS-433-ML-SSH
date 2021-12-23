@@ -25,7 +25,7 @@ fi
 
 LR=0.001
 BS_TENT=64
-RESUME=./save/iwildcam_models/Joint_iwildcam_resnet50_lr_1.0_decay_0.0001_bsz_256_temp_0.5_trial_0_balance_0.5
+RESUME=./save/iwildcam_models/Joint_iwildcam_resnet50_lr_0.1_decay_0.0001_bsz_256_temp_0.5_trial_1_balance_0.5
 
 echo 'DATASET: '${DATASET}
 echo 'CORRUPT: '${CORRUPT}
@@ -49,6 +49,5 @@ python tent.py \
 	--batch_size ${BS_TENT} \
 	--lr ${LR} \
 	--num_sample ${NSAMPLE} \
-	--resume save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_3
 	# --tsne
-	--ckpt 10
+	--ckpt 20

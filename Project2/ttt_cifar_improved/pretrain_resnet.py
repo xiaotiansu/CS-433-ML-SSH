@@ -42,7 +42,7 @@ def parse_option():
                         help='batch_size')
     parser.add_argument('--num_workers', type=int, default=16,
                         help='num of workers to use')
-    parser.add_argument('--epochs', type=int, default=50,
+    parser.add_argument('--epochs', type=int, default=20,
                         help='number of training epochs')
 
     # optimization
@@ -69,7 +69,7 @@ def parse_option():
                         help='using synchronized batch normalization')
     parser.add_argument('--warm', action='store_true',
                         help='warm-up for large batch training')
-    parser.add_argument('--trial', type=str, default='3',
+    parser.add_argument('--trial', type=str, default='4',
                         help='id for recording multiple runs')
 
     # Additional

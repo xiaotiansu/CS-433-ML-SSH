@@ -30,7 +30,7 @@ BS_SSL=256
 BS_ALIGN=256
 QS=256
 DIVERGENCE=all
-RESUME=./save/iwildcam_models/Joint_iwildcam_resnet50_lr_1.0_decay_0.0001_bsz_256_temp_0.5_trial_0_balance_0.5
+RESUME=./save/iwildcam_models/Joint_iwildcam_resnet50_lr_0.1_decay_0.0001_bsz_256_temp_0.5_trial_1_balance_0.5
 
 echo 'DATASET: '${DATASET}
 echo 'RESUME:  '${RESUME}
@@ -66,5 +66,5 @@ python ttt++.py \
 	--align_ssh \
 	--align_ext \
 	--num_sample ${NSAMPLE} \
-	--ckpt 10
+	--ckpt 20
 	# --tsne

@@ -41,7 +41,7 @@ parser.add_argument('--workers', default=0, type=int)
 parser.add_argument('--num_sample', default=1000, type=int)
 ########################################################################
 parser.add_argument('--lr', default=0.001, type=float)
-parser.add_argument('--nepoch', default=500, type=int, help='maximum number of epoch for ttt')
+parser.add_argument('--nepoch', default=50, type=int, help='maximum number of epoch for ttt')
 parser.add_argument('--bnepoch', default=2, type=int, help='first few epochs to update bn stat')
 parser.add_argument('--delayepoch', default=0, type=int)
 parser.add_argument('--stopepoch', default=25, type=int)
@@ -51,13 +51,13 @@ parser.add_argument('--outf', default='.')
 parser.add_argument('--level', default=5, type=int)
 parser.add_argument('--corruption', default='snow')
 parser.add_argument('--resume', default=None, help='directory of pretrained model')
-parser.add_argument('--ckpt', default=None, type=int)
+parser.add_argument('--ckpt', default=20, type=int)
 parser.add_argument('--fix_ssh', action='store_true')
 ########################################################################
 parser.add_argument('--method', default='shot', choices=['shot'])
 ########################################################################
 parser.add_argument('--model', default='resnet50', help='resnet50')
-parser.add_argument('--save_every', default=100, type=int)
+parser.add_argument('--save_every', default=10, type=int)
 ########################################################################
 parser.add_argument('--tsne', action='store_true')
 ########################################################################
@@ -100,7 +100,7 @@ _, trloader = dataloader.get_test_dataloader(args,num_sample=args.num_sample)
 
 print('Resuming from %s...' %(args.resume))
 
-load_resnet50(net, head, ssh, classifier, args)
+load_resnet50_from_joint_for_tent(net, args)
 
 ## SHOT (turn off classifier grad)
 for k, v in classifier.named_parameters():

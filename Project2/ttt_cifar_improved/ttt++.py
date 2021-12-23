@@ -69,7 +69,7 @@ parser.add_argument('--align_ext', action='store_true')
 parser.add_argument('--align_ssh', action='store_true')
 ########################################################################
 parser.add_argument('--model', default='resnet50', help='resnet50')
-parser.add_argument('--save_every', default=20, type=int)
+parser.add_argument('--save_every', default=10, type=int)
 ########################################################################
 parser.add_argument('--tsne', action='store_true')
 ########################################################################
@@ -90,9 +90,6 @@ random.seed(args.seed)
 np.random.seed(args.seed)
 
 cudnn.benchmark = True
-
-import pdb
-pdb.set_trace()
 
 # -------------------------------
 
@@ -144,6 +141,17 @@ if torch.cuda.device_count() > 1:
     ext = torch.nn.DataParallel(ext)
 
 cudnn.benchmark = True
+
+# all_err_cls = []
+# all_err_ssh = []
+
+# print('Running...')
+# print('Error (%)\t\ttest')
+
+# err_cls = test(teloader, net)[0]
+# torch.cuda.empty_cache()
+# print(('Epoch %d/%d:' %(0, args.nepoch)).ljust(24) +
+#             '%.2f\t\t' %(err_cls*100))
 
 # ----------- Offline Feature Summarization ------------
 

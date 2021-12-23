@@ -41,11 +41,11 @@ def parse_option():
                         help='batch_size')
     parser.add_argument('--num_workers', type=int, default=16,
                         help='num of workers to use')
-    parser.add_argument('--epochs', type=int, default=500,
+    parser.add_argument('--epochs', type=int, default=20,
                         help='number of training epochs')
 
     # optimization
-    parser.add_argument('--learning_rate', type=float, default=1.0,
+    parser.add_argument('--learning_rate', type=float, default=0.1,
                         help='learning rate')
     parser.add_argument('--lr_decay_epochs', type=str, default='350,400,450',
                         help='where to decay lr, can be a list')
@@ -90,7 +90,7 @@ def parse_option():
                         help='using synchronized batch normalization')
     parser.add_argument('--warm', action='store_true',
                         help='warm-up for large batch training')
-    parser.add_argument('--trial', type=str, default='0',
+    parser.add_argument('--trial', type=str, default='2',
                         help='id for recording multiple runs')
 
     parser.add_argument('--ckpt', type=str, default='',
@@ -162,8 +162,8 @@ def parse_option():
     # else:
     #     raise ValueError('dataset not supported: {}'.format(opt.dataset))
 
-    opt.ckpt = "./save/iwildcam_models/Joint_iwildcam_resnet50_lr_1.0_decay_0.0001_bsz_256_temp_0.5_trial_0_balance_0.5/ckpt_epoch_10.pth"
-    # opt.ckpt = "./save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_128_trial_3/ckpt_epoch_10.pth"
+    #opt.ckpt = "./save/iwildcam_models/Joint_iwildcam_resnet50_lr_0.1_decay_0.0001_bsz_256_temp_0.5_trial_1_balance_0.5/last.pth"
+    opt.ckpt = "./save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_4/last.pth"
 
     return opt
 

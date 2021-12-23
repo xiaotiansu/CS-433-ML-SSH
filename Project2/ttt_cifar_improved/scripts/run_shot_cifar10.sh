@@ -38,7 +38,6 @@ printf '\n---------------------\n\n'
 
 python shot.py \
 	--dataroot ${DATADIR} \
-	--resume results/${DATASET}_joint_resnet50 \
 	--outf results/${DATASET}_shot_joint_resnet50 \
 	--corruption ${CORRUPT} \
 	--level ${LEVEL} \
@@ -46,6 +45,6 @@ python shot.py \
 	--batch_size ${BS_SHOT} \
 	--lr ${LR} \
 	--num_sample ${NSAMPLE} \
-	--resume save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_3
+	--resume ./save/iwildcam_models/Joint_iwildcam_resnet50_lr_0.1_decay_0.0001_bsz_256_temp_0.5_trial_1_balance_0.5
 
 	# --tsne
