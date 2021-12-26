@@ -13,7 +13,7 @@ if [ "$#" -lt 2 ]; then
 
 	# METHOD=ssl
 	# METHOD=align
-	METHOD=ssl
+	METHOD=align
 	NSAMPLE=100000
 else
 	CORRUPT=$1
@@ -25,12 +25,12 @@ fi
 
 SCALE_EXT=0.05
 SCALE_SSH=0.2
-LR=0.001
-BS_SSL=128
-BS_ALIGN=128
-QS=128
+LR=0.01
+BS_SSL=256
+BS_ALIGN=256
+QS=256
 DIVERGENCE=all
-RESUME=save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_3
+RESUME=./save/iwildcam_models/Joint_iwildcam_resnet50_lr_0.1_decay_0.0001_bsz_256_temp_0.5_trial_1_balance_0.5
 
 echo 'DATASET: '${DATASET}
 echo 'RESUME:  '${RESUME}
@@ -66,5 +66,5 @@ python ttt++.py \
 	--align_ssh \
 	--align_ext \
 	--num_sample ${NSAMPLE} \
-	--ckpt 10
+	--ckpt 20
 	# --tsne

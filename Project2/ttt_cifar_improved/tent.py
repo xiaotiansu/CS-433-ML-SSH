@@ -29,7 +29,7 @@ from utils.tent_utils import setup_tent, setup_optimizer
 # ----------------------------------
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', default='cifar10')
+parser.add_argument('--dataset', default='wilds')
 parser.add_argument('--dataroot', default=None)
 parser.add_argument('--shared', default=None)
 ########################################################################
@@ -41,7 +41,7 @@ parser.add_argument('--workers', default=0, type=int)
 parser.add_argument('--num_sample', default=1000, type=int)
 ########################################################################
 parser.add_argument('--lr', default=0.001, type=float)
-parser.add_argument('--nepoch', default=500, type=int, help='maximum number of epoch for ttt')
+parser.add_argument('--nepoch', default=50, type=int, help='maximum number of epoch for ttt')
 parser.add_argument('--bnepoch', default=2, type=int, help='first few epochs to update bn stat')
 parser.add_argument('--delayepoch', default=0, type=int)
 parser.add_argument('--stopepoch', default=25, type=int)
@@ -50,14 +50,14 @@ parser.add_argument('--outf', default='.')
 ########################################################################
 parser.add_argument('--level', default=5, type=int)
 parser.add_argument('--corruption', default='snow')
-parser.add_argument('--resume', default=None, help='directory of pretrained model')
-parser.add_argument('--ckpt', default=None, type=int)
+parser.add_argument('--resume', default="./save/iwildcam_models/Joint_iwildcam_resnet50_lr_0.1_decay_0.0001_bsz_256_temp_0.5_trial_1_balance_0.5", help='directory of pretrained model')
+parser.add_argument('--ckpt', default=20, type=int)
 parser.add_argument('--fix_ssh', action='store_true')
 ########################################################################
 parser.add_argument('--method', default='tent', choices=['tent'])
 ########################################################################
 parser.add_argument('--model', default='resnet50', help='resnet50')
-parser.add_argument('--save_every', default=100, type=int)
+parser.add_argument('--save_every', default=10, type=int)
 ########################################################################
 parser.add_argument('--tsne', action='store_true')
 ########################################################################
@@ -94,7 +94,7 @@ _, trloader = dataloader.get_test_dataloader(args,num_sample=args.num_sample)
 
 print('Resuming from %s...' %(args.resume))
 
-load_resnet50(net, head, ssh, classifier, args)
+load_resnet50_from_joint_for_tent(net, args)
 
 if torch.cuda.device_count() > 1:
     ext = torch.nn.DataParallel(ext)

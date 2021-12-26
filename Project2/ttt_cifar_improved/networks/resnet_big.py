@@ -260,7 +260,7 @@ class JointResNet(nn.Module):
     def __init__(self, name='resnet50', feat_dim=128, num_classes=10):
         super(JointResNet, self).__init__()
         self.encoder = models.__dict__[name](pretrained=True)
-        self.fc = self.encoder.fc
+        self.fc = nn.Linear(2048, num_classes)
         self.encoder.fc = nn.Identity()
 
         if num_classes > 999:

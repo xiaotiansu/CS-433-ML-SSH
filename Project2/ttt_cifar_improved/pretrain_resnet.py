@@ -42,7 +42,7 @@ def parse_option():
                         help='batch_size')
     parser.add_argument('--num_workers', type=int, default=16,
                         help='num of workers to use')
-    parser.add_argument('--epochs', type=int, default=50,
+    parser.add_argument('--epochs', type=int, default=20,
                         help='number of training epochs')
 
     # optimization
@@ -69,7 +69,7 @@ def parse_option():
                         help='using synchronized batch normalization')
     parser.add_argument('--warm', action='store_true',
                         help='warm-up for large batch training')
-    parser.add_argument('--trial', type=str, default='3',
+    parser.add_argument('--trial', type=str, default='4',
                         help='id for recording multiple runs')
 
     # Additional
@@ -132,9 +132,9 @@ def parse_option():
 
 def set_loader(opt):
     class args:
-        dataroot="/data/wilds/"
+        dataroot=opt.data_folder
         workers=16
-        batch_size=256
+        batch_size=opt.batch_size
 
     dataloader = IWildData(args)
 
@@ -146,16 +146,15 @@ def set_loader(opt):
 
 def set_model(opt):
     # model = SupCEResNet(name=opt.model, num_classes=opt.n_cls)
-    # model = OfficialResNet(name=opt.model, num_classes=opt.n_cls)
-    class args:
-        dataroot="/data/wilds/"
-        workers=16
-        batch_size=256
-        resume='save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_3'
-        ckpt=10
-
-    model, ext, head, ssh, classifier = build_resnet50(args)
-    load_resnet50(model, head, ssh, classifier, args)
+    model = OfficialResNet(name=opt.model, num_classes=opt.n_cls)
+    # class args:
+    #     dataroot="/data/wilds/"
+    #     workers=16
+    #     batch_size=256
+    #     resume='save/iwildcam_models/SupCE_iwildcam_resnet50_lr_0.2_decay_0.0001_bsz_256_trial_3'
+    #     ckpt=10
+    # model, ext, head, ssh, classifier = build_resnet50(args)
+    # load_resnet50(model, head, ssh, classifier, args)
 
     criterion = torch.nn.CrossEntropyLoss()
 

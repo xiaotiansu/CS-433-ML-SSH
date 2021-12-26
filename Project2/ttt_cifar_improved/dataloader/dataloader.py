@@ -77,7 +77,7 @@ class IWildData():
     def get_test_dataloader(self, args, ttt=False, num_sample=None):
         # if not hasattr(args, 'corruption') or args.corruption == 'original':
         #     print('Test on the original test set')
-        test_data = self.dataset.get_subset('test', frac = 1, transform=self.te_transforms)
+        test_data = self.dataset.get_subset('test', frac = 0.3, transform=self.te_transforms)
         teset = GeneralWilds_Batched_Dataset(test_data, args.batch_size, domain_idx=0)
 
         # elif args.corruption in common_corruptions:

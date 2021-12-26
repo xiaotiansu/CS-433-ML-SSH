@@ -36,7 +36,7 @@ parser.add_argument('--shared', default=None)
 ########################################################################
 parser.add_argument('--depth', default=26, type=int)
 parser.add_argument('--width', default=1, type=int)
-parser.add_argument('--batch_size', default=64, type=int)
+parser.add_argument('--batch_size', default=256, type=int)
 parser.add_argument('--batch_size_align', default=256, type=int)
 parser.add_argument('--queue_size', default=256, type=int)
 parser.add_argument('--group_norm', default=0, type=int)
@@ -69,16 +69,19 @@ parser.add_argument('--align_ext', action='store_true')
 parser.add_argument('--align_ssh', action='store_true')
 ########################################################################
 parser.add_argument('--model', default='resnet50', help='resnet50')
-parser.add_argument('--save_every', default=20, type=int)
+parser.add_argument('--save_every', default=10, type=int)
 ########################################################################
 parser.add_argument('--tsne', action='store_true')
 ########################################################################
 parser.add_argument('--seed', default=0, type=int)
 
 
-args = parser.parse_args()
+def show_images(images, nmax=64):
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.set_xticks([]); ax.set_yticks([])
+    ax.imshow(make_grid((images.detach()[:nmax]), nrow=8).permute(1, 2, 0))
 
-print(args)
+args = parser.parse_args()
 
 my_makedir(args.outf)
 
@@ -91,6 +94,9 @@ cudnn.benchmark = True
 # -------------------------------
 
 net, ext, head, ssh, classifier = build_resnet50(args)
+
+# from networks.resnet_big import JointResNet
+# joint = JointResNet(num_classes=186)
 
 dataloader = IWildData(args)
 
@@ -120,13 +126,32 @@ if args.method == 'both':
 
 # -------------------------------
 
+print(args)
+
 print('Resuming from %s...' %(args.resume))
 
-# net= torch.nn.DataParallel(net)
-load_resnet50(net, head, ssh, classifier, args)
+net= torch.nn.DataParallel(net)
+load_resnet50_from_joint(net, head, ssh, classifier, args)
+
+# load_joint(joint, args)
+
+# net, ext, head, ssh, classifier = convertFromJointToModel(joint)
 
 if torch.cuda.device_count() > 1:
     ext = torch.nn.DataParallel(ext)
+
+cudnn.benchmark = True
+
+# all_err_cls = []
+# all_err_ssh = []
+
+# print('Running...')
+# print('Error (%)\t\ttest')
+
+# err_cls = test(teloader, net)[0]
+# torch.cuda.empty_cache()
+# print(('Epoch %d/%d:' %(0, args.nepoch)).ljust(24) +
+#             '%.2f\t\t' %(err_cls*100))
 
 # ----------- Offline Feature Summarization ------------
 
@@ -216,9 +241,7 @@ for epoch in range(1, args.nepoch+1):
     for batch_idx, (inputs, labels, meta) in enumerate(trloader):
         torch.cuda.empty_cache()
         optimizer.zero_grad()
-        import pdb
-        pdb.set_trace()
-        print(inputs[0].shape)
+        # print(inputs[0].shape)
         
         if args.method in ['ssl', 'both']:
             images = torch.cat([inputs[0], inputs[1]], dim=0)
@@ -337,6 +360,8 @@ for epoch in range(1, args.nepoch+1):
 
         if epoch > args.bnepoch:
             optimizer.step()
+
+        print('Finish a fucking batch!!!, idx={}'.format(batch_idx))
 
     err_cls = test(teloader, net)[0]
     all_err_cls.append(err_cls)

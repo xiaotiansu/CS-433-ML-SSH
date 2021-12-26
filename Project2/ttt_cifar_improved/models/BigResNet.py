@@ -8,6 +8,7 @@ SupConResNet adpated from https://github.com/HobbitLong/SupContrast
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision.models as models
 
 
 class BasicBlock(nn.Module):
@@ -165,10 +166,10 @@ class LinearBatchNorm(nn.Module):
 
 class SupConResNet(nn.Module):
     """backbone + projection head"""
-    def __init__(self, name='resnet50', head='mlp', feat_dim=128):
+    def __init__(self, name='resnet50', dim_in=2048, head='mlp', feat_dim=128):
         super(SupConResNet, self).__init__()
-        model_fun, dim_in = model_dict[name]
-        self.encoder = model_fun()
+        self.encoder = models.__dict__[name](pretrained=True)
+        self.encoder.fc = nn.Identity()
         if head == 'linear':
             self.head = nn.Linear(dim_in, feat_dim)
         elif head == 'mlp':

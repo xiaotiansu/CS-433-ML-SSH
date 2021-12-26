@@ -43,6 +43,8 @@
 # bash scripts/run_ttt++_cifar.sh snow align $bs $qs
 # bash scripts/run_ttt++_cifar.sh snow both $bs $qs
 
+python pretrain_resnet.py
+python pretrain_joint.py
 
 bash scripts/run_ttt++_cifar10.sh
 bash scripts/run_tent_cifar10.sh
